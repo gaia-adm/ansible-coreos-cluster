@@ -99,7 +99,7 @@
         "Tags" : [
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Public" },
-	        { "Key" : "Name", "Value" : "Gaia VPC" },
+          { "Key" : "Name", "Value" : "Gaia VPC" },
           { "Key" : "Group", "Value" : "Gaia" }
         ]
       }
@@ -348,34 +348,41 @@
       }
     },
 
-
-
-    "CoreOSSecurityGroup": {
+    "EtcdSecurityGroup": {
+      "DependsOn" : ["VPC"],
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "CoreOS SecurityGroup",
+        "GroupDescription": "Etcd Security Group",
+        "VpcId" : { "Ref" : "VPC" },
         "SecurityGroupIngress": [
           {"IpProtocol": "tcp", "FromPort": "22", "ToPort": "22", "CidrIp": {"Ref": "AllowSSHFrom"}}
+        ],
+        "Tags" : [
+          { "Key" : "Name", "Value" : "Etcd Security Group" }
         ]
       }
     },
 
     "Ingress2379": {
+      "DependsOn" : ["EtcdSecurityGroup"],
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "CoreOSSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2379", "ToPort": "2379", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "CoreOSSecurityGroup", "GroupId" ]
+        "GroupName": {"Ref": "EtcdSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2379", "ToPort": "2379", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "EtcdSecurityGroup", "GroupId" ]
         }
       }
     },
+
     "Ingress2380": {
+      "DependsOn" : ["EtcdSecurityGroup"],
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "CoreOSSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2380", "ToPort": "2380", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "CoreOSSecurityGroup", "GroupId" ]
+        "GroupName": {"Ref": "EtcdSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2380", "ToPort": "2380", "SourceSecurityGroupId": {
+          "Fn::GetAtt" : [ "EtcdSecurityGroup", "GroupId" ]
         }
       }
     },
+
     "cliROrole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -431,11 +438,12 @@
         ]
       }
     },
-    "CoreOSServerAutoScale": {
+
+    "EtcdServerAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
         "AvailabilityZones": {"Fn::GetAZs": ""},
-        "LaunchConfigurationName": {"Ref": "CoreOSServerLaunchConfig"},
+        "LaunchConfigurationName": {"Ref": "EtcdServerLaunchConfig"},
         "MinSize": "3",
         "MaxSize": "9",
         "DesiredCapacity": {"Ref": "ClusterSize"},
@@ -444,46 +452,48 @@
         ]
       }
     },
-    "CoreOSServerLaunchConfig": {
+    
+    "EtcdServerLaunchConfig": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
+        "AvailabilityZones": { "Fn::GetAtt" : [ "PrivateSubnetEtcd", "AvailabilityZone" ] },
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "CoreosStableAMI" ]},
         "InstanceType": {"Ref": "InstanceType"},
         "KeyName": {"Ref": "KeyPairName"},
-        "SecurityGroups": [{"Ref": "CoreOSSecurityGroup"}],
+        "SecurityGroups": [{"Ref": "EtcdSecurityGroup"}],
         "IamInstanceProfile": {"Ref": "CLIROAccessProfile"},
         "UserData" : { "Fn::Base64":
           { "Fn::Join": [ "", [
             "#cloud-config\n\n",
             "coreos:\n",
             "  etcd2:\n",
-			"    advertise-client-urls: http://$", { "Ref": "AdvertisedIPAddress" }, "_ipv4:2379\n",
-			"    initial-advertise-peer-urls: http://$", { "Ref": "AdvertisedIPAddress" }, "_ipv4:2380\n",
-			"    listen-client-urls: http://0.0.0.0:2379\n",
-			"    listen-peer-urls: http://$", { "Ref": "AdvertisedIPAddress" }, "_ipv4:2380\n",
+            "    advertise-client-urls: http://$", { "Ref": "AdvertisedIPAddress" }, "_ipv4:2379\n",
+            "    initial-advertise-peer-urls: http://$", { "Ref": "AdvertisedIPAddress" }, "_ipv4:2380\n",
+            "    listen-client-urls: http://0.0.0.0:2379\n",
+            "    listen-peer-urls: http://$", { "Ref": "AdvertisedIPAddress" }, "_ipv4:2380\n",
             "  units:\n",
             "    - name: etcd2.service\n",
             "      command: stop\n",
             "    - name: etcd-peers.service\n",
-			"      command: start\n",
-      		"      content: |\n",
-      		"        [Unit]\n",
-      		"        Description=Write a file with the etcd peers that we should bootstrap to\n",
-      		"        [Service]\n",
-      		"        Restart=on-failure\n",
-      		"        RestartSec=10\n",
-      		"        ExecStartPre=/usr/bin/docker pull monsanto/etcd-aws-cluster:latest\n",
-      		"        ExecStartPre=/usr/bin/docker run --rm=true -v /etc/sysconfig/:/etc/sysconfig/ monsanto/etcd-aws-cluster:latest\n",
-      		"        ExecStart=/usr/bin/systemctl start etcd2\n",
+            "      command: start\n",
+            "      content: |\n",
+            "        [Unit]\n",
+            "        Description=Write a file with the etcd peers that we should bootstrap to\n",
+            "        [Service]\n",
+            "        Restart=on-failure\n",
+            "        RestartSec=10\n",
+            "        ExecStartPre=/usr/bin/docker pull monsanto/etcd-aws-cluster:latest\n",
+            "        ExecStartPre=/usr/bin/docker run --rm=true -v /etc/sysconfig/:/etc/sysconfig/ monsanto/etcd-aws-cluster:latest\n",
+            "        ExecStart=/usr/bin/systemctl start etcd2\n",
             "    - name: fleet.service\n",
             "      command: start\n",
             "write_files:\n",
             "  - path: /etc/systemd/system/etcd2.service.d/30-etcd_peers.conf\n",
-			"    permissions: 0644\n",
-			"    content: |\n",
-			"      [Service]\n",
-			"      # Load the other hosts in the etcd leader autoscaling group from file\n",
-			"      EnvironmentFile=/etc/sysconfig/etcd-peers\n"
+            "    permissions: 0644\n",
+            "    content: |\n",
+            "      [Service]\n",
+            "      # Load the other hosts in the etcd leader autoscaling group from file\n",
+            "      EnvironmentFile=/etc/sysconfig/etcd-peers\n"
             ] ]
           }
         }
