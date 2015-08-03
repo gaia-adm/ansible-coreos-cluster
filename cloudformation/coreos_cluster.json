@@ -333,7 +333,7 @@
         "InstanceType" : "t2.micro",
         "KeyName"  : { "Ref" : "KeyPairName" },
         "SourceDestCheck" : "false",
-        "ImageId" : { "Fn::FindInMap" : [ "NatRegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "NatAMI" ]},
         "NetworkInterfaces" : [{
           "GroupSet"                 : [{ "Ref" : "NatSecurityGroup" }],
           "AssociatePublicIpAddress" : "true",
@@ -556,13 +556,7 @@
           }
         }
       }
-    },
-
-    "Outputs" : {
-      "NATIP" : {
-        "Description" : "NAT IP address",
-        "Value" : { "Fn::GetAtt" : [ "NAT", "PublicIp" ] }
-      }
     }
+
   }
 }
