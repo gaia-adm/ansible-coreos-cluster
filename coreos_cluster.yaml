@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  connection: local
+  #gather_facts: False
+  vars_files:
+  - group_vars/all
+
+  tasks:
+  - name: Include the variables specific to the vpc
+    include_vars: envs/{{ environ| default("prod") }}
+
+  # create a new VPC
+  - name: Create the VPC
+    ec2_vpc:
+      region: "{{ ec2_region }}"
+      cidr_block: "{{ vpc_cidr_block }}"
+      resource_tags: "{{ vpc_resource_tags }}"
+      subnets: "{{ vpc_subnets }}"
+      internet_gateway: "{{ vpc_internet_gateway|string }}"
+      route_tables: "{{ vpc_route_tables }}"
+      wait: true
+    register: vpc
+
+  # generate user-data from template
+  - name: Generate user-data
+    set_fact:
+      user_data: "{{ lookup('template', playbook_dir + '/templates/user-data.j2') | b64encode }}"
+  - debug: var=user_data
+
+  # create etcd launch configuration
+  - ec2_lc:
+    name: etcd-launch-config
+    region: "{{ ec2_region }}"
+    image_id: "{{ etcd_instance_image }}"
+    security_groups: "{{ etcd_group.name }}"
+    instance_type: "{{ etcd_instance_type }}"
+    # TODO: instance_profile_name: IAM_PROFILE
+    user_data: {{ user_data }}

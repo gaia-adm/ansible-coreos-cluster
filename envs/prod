@@ -1,0 +1,42 @@
+vpc_cidr_block: 10.10.0.0/16
+
+vpc_resource_tags:
+  Name: Gaia
+  group: MQM_Alexei
+  env: production
+
+vpc_subnets:
+  - cidr: 10.10.0.0/18
+    az: us-east-1a
+  - cidr: 10.10.64.0/18
+    az: us-east-1b
+
+vpc_internet_gateway: "yes"
+
+vpc_route_tables:
+  - subnets:
+     - 10.10.0.0/18
+     - 10.10.64.0/18
+    routes:
+      - dest: 0.0.0.0/0
+        gw: igw
+
+# etcd security group
+etcd_group:
+  name: sg-etcd
+  desc: the security group for the etcd
+  rules:
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: 0.0.0.0/0
+
+# etcd - common instance parameters
+etcd_instance_keypair: etcd-keypair
+etcd_key_file: etcd-key.pem
+etcd_instance_type: r3.large      # Memory optimized 15GB RAM
+etcd_instance_image: ami-6b1cd400 # CoreOS stable 717.3.0 (HVM)
+etcd_instance_tags:
+  Name: etcd
+  group: MQM_Alexei
+  role: node
