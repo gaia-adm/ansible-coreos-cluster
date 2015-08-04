@@ -461,7 +461,7 @@
         "MaxSize": "9",
         "DesiredCapacity": {"Ref": "EtcdClusterSize"},
         "Tags": [
-            {"Key": "Name", "Value": { "Ref" : "AWS::StackName" }, "PropagateAtLaunch": true}
+            {"Key": "Name", "Value": "etcd Node", "PropagateAtLaunch": true}
         ]
       }
     },
@@ -521,7 +521,7 @@
         "MaxSize": "40",
         "DesiredCapacity": {"Ref": "CoreOSClusterSize"},
         "Tags": [
-            {"Key": "Name", "Value": { "Ref" : "AWS::StackName" }, "PropagateAtLaunch": true}
+            {"Key": "Name", "Value": "CoreOS Worker", "PropagateAtLaunch": true}
         ]
       }
     },
