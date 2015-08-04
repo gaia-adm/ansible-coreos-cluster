@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
 
-  "Description": "A Gaia cluster based off an auto scaling group",
+  "Description": "A Gaia cluster based on auto scaling groups",
 
   "Mappings" : {
       "RegionMap" : {
@@ -45,9 +45,9 @@
       "SubnetConfig" : {
           "VPC"      : { "CIDR" : "10.10.0.0/16" },
           "Public"   : { "CIDR" : "10.10.0.0/18" },
-          "PrivateEtcd"   : { "CIDR" : "10.10.64.0/18" },
-          "PrivateCoreOS" : { "CIDR" : "10.10.128.0/18" },
-          "PrivateInfra"  : { "CIDR" : "10.10.192.0/18" }
+          "Private01"   : { "CIDR" : "10.10.64.0/18" },
+          "Private02" : { "CIDR" : "10.10.128.0/18" },
+          "Private03"  : { "CIDR" : "10.10.192.0/18" }
       }
   },
 
@@ -182,44 +182,44 @@
       }
     },
 
-    "PrivateSubnetEtcd" : {
+    "PrivateSubnet01" : {
       "DependsOn" : ["VPC"],
       "Type" : "AWS::EC2::Subnet",
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
-        "CidrBlock" : { "Fn::FindInMap" : [ "SubnetConfig", "PrivateEtcd", "CIDR" ]},
+        "CidrBlock" : { "Fn::FindInMap" : [ "SubnetConfig", "Private01", "CIDR" ]},
         "Tags" : [
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Private" },
-          { "Key" : "Name", "Value" : "etcd Cluster" }
+          { "Key" : "Name", "Value" : "Subnet01" }
         ]
       }
     },
 
-    "PrivateSubnetCoreOS" : {
+    "PrivateSubnet02" : {
       "DependsOn" : ["VPC"],
       "Type" : "AWS::EC2::Subnet",
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
-        "CidrBlock" : { "Fn::FindInMap" : [ "SubnetConfig", "PrivateCoreOS", "CIDR" ]},
+        "CidrBlock" : { "Fn::FindInMap" : [ "SubnetConfig", "Private02", "CIDR" ]},
         "Tags" : [
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Private" },
-          { "Key" : "Name", "Value" : "CoreOS Cluster" }
+          { "Key" : "Name", "Value" : "Subnet02" }
         ]
       }
     },
 
-    "PrivateSubnetInfra" : {
+    "PrivateSubnet03" : {
       "DependsOn" : ["VPC"],
       "Type" : "AWS::EC2::Subnet",
       "Properties" : {
         "VpcId" : { "Ref" : "VPC" },
-        "CidrBlock" : { "Fn::FindInMap" : [ "SubnetConfig", "PrivateInfra", "CIDR" ]},
+        "CidrBlock" : { "Fn::FindInMap" : [ "SubnetConfig", "Private03", "CIDR" ]},
         "Tags" : [
           { "Key" : "Application", "Value" : { "Ref" : "AWS::StackName" } },
           { "Key" : "Network", "Value" : "Private" },
-          { "Key" : "Name", "Value" : "Infra Cluster" }
+          { "Key" : "Name", "Value" : "Subnet03" }
         ]
       }
     },
@@ -236,29 +236,29 @@
       }
     },
 
-    "PrivateSubnetRouteTableAssociation" : {
-      "DependsOn" : ["PrivateSubnetEtcd", "PrivateRouteTable"],
+    "PrivateSubnet01RouteTableAssociation" : {
+      "DependsOn" : ["PrivateSubnet01", "PrivateRouteTable"],
       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
       "Properties" : {
-        "SubnetId" : { "Ref" : "PrivateSubnetEtcd" },
+        "SubnetId" : { "Ref" : "PrivateSubnet01" },
         "RouteTableId" : { "Ref" : "PrivateRouteTable" }
       }
     },
 
-    "PrivateSubnetRouteTableAssociation" : {
-      "DependsOn" : ["PrivateSubnetCoreOS", "PrivateRouteTable"],
+    "PrivateSubnet02RouteTableAssociation" : {
+      "DependsOn" : ["PrivateSubnet02", "PrivateRouteTable"],
       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
       "Properties" : {
-        "SubnetId" : { "Ref" : "PrivateSubnetCoreOS" },
+        "SubnetId" : { "Ref" : "PrivateSubnet02" },
         "RouteTableId" : { "Ref" : "PrivateRouteTable" }
       }
     },
 
-    "PrivateSubnetRouteTableAssociation" : {
-      "DependsOn" : ["PrivateSubnetInfra", "PrivateRouteTable"],
+    "PrivateSubnet03RouteTableAssociation" : {
+      "DependsOn" : ["PrivateSubnet03", "PrivateRouteTable"],
       "Type" : "AWS::EC2::SubnetRouteTableAssociation",
       "Properties" : {
-        "SubnetId" : { "Ref" : "PrivateSubnetInfra" },
+        "SubnetId" : { "Ref" : "PrivateSubnet03" },
         "RouteTableId" : { "Ref" : "PrivateRouteTable" }
       }
     },
@@ -380,9 +380,9 @@
       "DependsOn" : ["EtcdSecurityGroup"],
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "EtcdSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2379", "ToPort": "2379", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "EtcdSecurityGroup", "GroupId" ]
-        }
+        "GroupId": { "Ref": "EtcdSecurityGroup" },
+        "IpProtocol": "tcp", "FromPort": "2379", "ToPort": "2379",
+        "SourceSecurityGroupId": { "Ref": "EtcdSecurityGroup" }
       }
     },
 
@@ -390,9 +390,9 @@
       "DependsOn" : ["EtcdSecurityGroup"],
       "Type": "AWS::EC2::SecurityGroupIngress",
       "Properties": {
-        "GroupName": {"Ref": "EtcdSecurityGroup"}, "IpProtocol": "tcp", "FromPort": "2380", "ToPort": "2380", "SourceSecurityGroupId": {
-          "Fn::GetAtt" : [ "EtcdSecurityGroup", "GroupId" ]
-        }
+        "GroupId": { "Ref": "EtcdSecurityGroup" },
+        "IpProtocol": "tcp", "FromPort": "2380", "ToPort": "2380",
+        "SourceSecurityGroupId": { "Ref": "EtcdSecurityGroup" }
       }
     },
 
@@ -455,7 +455,7 @@
     "EtcdServerAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "VPCZoneIdentifier": [{ "Ref" : "PrivateSubnet01" }, { "Ref" : "PrivateSubnet02" }, { "Ref" : "PrivateSubnet03" }],
         "LaunchConfigurationName": {"Ref": "EtcdServerLaunchConfig"},
         "MinSize": "3",
         "MaxSize": "9",
@@ -469,7 +469,6 @@
     "EtcdServerLaunchConfig": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "AvailabilityZones": { "Fn::GetAtt" : [ "PrivateSubnetEtcd", "AvailabilityZone" ] },
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "CoreosStableAMI" ]},
         "InstanceType": {"Ref": "EtcdInstanceType"},
         "KeyName": {"Ref": "KeyPairName"},
@@ -516,7 +515,7 @@
     "CoreOSServerAutoScale": {
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "Properties": {
-        "AvailabilityZones": {"Fn::GetAZs": ""},
+        "VPCZoneIdentifier": [{ "Ref" : "PrivateSubnet01" }, { "Ref" : "PrivateSubnet02" }, { "Ref" : "PrivateSubnet03" }],
         "LaunchConfigurationName": {"Ref": "CoreOSServerLaunchConfig"},
         "MinSize": "3",
         "MaxSize": "40",
@@ -530,7 +529,6 @@
     "CoreOSServerLaunchConfig": {
       "Type": "AWS::AutoScaling::LaunchConfiguration",
       "Properties": {
-        "AvailabilityZones": { "Fn::GetAtt" : [ "PrivateSubnetCoreOS", "AvailabilityZone" ] },
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "CoreosStableAMI" ]},
         "InstanceType": {"Ref": "CoreOSInstanceType"},
         "KeyName": {"Ref": "KeyPairName"},
