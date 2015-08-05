@@ -1,0 +1,5 @@
+# nat - parameters
+nat_keypair_name: nat-prod-keypair
+nat_keypair_file: nat-prod-key.pem
+nat_instance_type: "t2.small"
+nat_instance_tags: { "Name": "NAT", "env": "production", "group": "gaia" }

@@ -1,0 +1,3 @@
+# coreos - parameters
+coreos_keypair_name: nat-prod-keypair
+coreos_keypair_file: nat-prod-key.pem

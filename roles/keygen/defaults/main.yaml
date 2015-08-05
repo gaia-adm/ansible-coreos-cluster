@@ -1,0 +1,3 @@
+keypair_region: us-east-1
+keypair_name: secret-key
+keypair_file: secret-key.pem

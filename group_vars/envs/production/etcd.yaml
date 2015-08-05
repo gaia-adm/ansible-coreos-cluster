@@ -1,0 +1,10 @@
+# etcd - common instance parameters
+etcd_keypair_name: etcd-prod-keypair
+etcd_keypair_file: etcd-prod-key.pem
+etcd_instance_type: r3.large      # Memory optimized 15GB RAM
+etcd_instance_image: ami-6b1cd400 # CoreOS stable 717.3.0 (HVM)
+etcd_instance_tags:
+  Name: etcd
+  group: gaia
+  type: cluster_node
+  decription: etcd HA Cluster Node

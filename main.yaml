@@ -3,20 +3,28 @@
   connection: local
   gather_facts: False
   vars_files:
-  - group_vars/all
+  - group_vars/all.yaml
+  - group_vars/envs/{{ env | default("production") }}/vpc.yaml
+  - group_vars/envs/{{ env | default("production") }}/etcd.yaml
+  - group_vars/envs/{{ env | default("production") }}/nat.yaml
+  - group_vars/envs/{{ env | default("production") }}/coreos.yaml
 
-  tasks:
+  roles:
+    # generate etcd key pair
+    - role: keygen
+      keypair_region: "{{ ec2_region }}"
+      keypair_name: "{{ etcd_keypair_name }}"
+      keypair_file: "{{ etcd_keypair_file }}"
+    # generate nat key pair
+    - role: keygen
+      keypair_region: "{{ ec2_region }}"
+      keypair_name: "{{ nat_keypair_name }}"
+      keypair_file: "{{ nat_keypair_file }}"
+    # generate coreos key pair
+    - role: keygen
+      keypair_region: "{{ ec2_region }}"
+      keypair_name: "{{ coreos_keypair_name }}"
+      keypair_file: "{{ coreos_keypair_file }}"
 
-  # generate etcd key pair and store generated private key into file
-  - name: Generate ec2 key
-    ec2_key:
-      region: "{{ ec2_region }}"
-      name: "{{ etcd_instance_keypair }}"
-    register: keypair
-  # !!! Keep local file safe on your local machine only
-  - name: write generated key to local file
-    copy:
-      dest: keys/"{{ etcd_key_file }}"
-      content: "{{ keypair.key.private_key }}"
-      mode: 0600
-    when: keypair.changed
+    # create a new VPC
+    - role: vpc

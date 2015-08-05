@@ -1,0 +1,55 @@
+- name: create a new vpc
+  ec2_vpc:
+    region: "{{ ec2_region }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    resource_tags: "{{ vpc_resource_tags }}"
+    internet_gateway: "{{ vpc_internet_gateway|string }}"
+    subnets: "{{ vpc_subnets }}"
+    wait: true
+  register: ec2_vpc_out
+
+- name: search for the latest NAT AMI image
+  ec2_ami_find:
+    region: "{{ ec2_region }}"
+    name: "amzn-ami-vpc-nat-hvm-*"
+    sort: name
+    sort_order: descending
+    sort_end: 1
+    no_result_action: fail
+  register: find_out
+
+- name: get NAT AMI
+  set_fact:
+    nat_ami: "{{ find_out.results[0] }}"
+
+- name: launch NAT instance in 1st AZ
+  ec2:
+    region: "{{ ec2_region }}"
+    keypair: "{{ nat_keypair_name }}"
+    zone: "{{ ec2_region_az1 }}"
+    image: "{{ nat_ami.ami_id }}"
+    instance_type: "{{ nat_instance_type }}"
+    instance_tags: "{{ nat_instance_tags }}"
+    vpc_subnet_id: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'public') | first }}"
+    assign_public_ip: yes
+    source_dest_check: no
+    wait: yes
+  register: nat_out
+
+- name: update vpc routing tables
+  ec2_vpc:
+    region: "{{ ec2_region }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    resource_tags: "{{ vpc_resource_tags }}"
+    internet_gateway: "{{ vpc_internet_gateway|string }}"
+    subnets: "{{ ec2_vpc_out.subnets }}"
+    route_tables:
+      - subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'public', 'cidr') }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gw: igw
+      - subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private', 'cidr') }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gw: "{{ nat_out.instance_ids[0] }}"
+  register: ec2_vpc_out

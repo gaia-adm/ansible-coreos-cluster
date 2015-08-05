@@ -1,0 +1,13 @@
+# generate  key pair and store generated private key into file
+- name: Generate ec2 key
+  ec2_key:
+    region: "{{ keypair_region }}"
+    name: "{{ keypair_name }}"
+  register: keypair
+# !!! Keep local file safe on your local machine only
+- name: write generated key to local file
+  copy:
+    dest: keys/{{ keypair_file }}
+    content: "{{ keypair.key.private_key }}"
+    mode: 0600
+  when: keypair.changed
