@@ -1,4 +1,13 @@
 ---
+- name: Find previous instances and clean up
+  hosts: tag_Name_NAT
+  gather_facts: False
+  tags: find
+  tasks:
+    - name: add to terminate-group
+      group_by:
+        key: terminate-group
+
 - hosts: localhost
   connection: local
   gather_facts: False
@@ -28,3 +37,11 @@
 
     # create a new VPC
     - role: vpc
+
+- hosts: terminate-group
+  connection: local
+  gather_facts: False
+  vars_files:
+  - group_vars/all.yaml
+  roles:
+    - terminate

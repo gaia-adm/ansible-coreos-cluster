@@ -1,0 +1,8 @@
+- hosts: tag_Name_NAT
+  gather_facts: False
+  connection: local
+  vars_files:
+  - group_vars/all.yaml
+
+  roles:
+    - terminate

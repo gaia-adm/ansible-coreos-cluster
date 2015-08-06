@@ -1,0 +1,8 @@
+- name: terminate old ec2 instance
+  local_action:
+    module: ec2
+    region: "{{ ec2_region }}"
+    state: absent
+    instance_ids: "{{ ec2_id }}"
+    wait: yes
+  ignore_errors: yes
