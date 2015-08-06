@@ -4,7 +4,7 @@
 coreos:
   etcd2:
     # generate a new token for each unique cluster from
-    discovery: "{{ lookup('pipe', 'curl -s https://discovery.etcd.io/new') }}"
+    discovery: "{{ discovery_url }}"
     # multi-region and multi-cloud deployments need to use $public_ipv4
     advertise-client-urls: http://$private_ipv4:2379
     initial-advertise-peer-urls: http://$private_ipv4:2380

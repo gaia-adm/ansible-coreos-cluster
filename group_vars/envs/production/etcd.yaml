@@ -1,10 +1,31 @@
 # etcd - common instance parameters
 etcd_keypair_name: etcd-prod-keypair
 etcd_keypair_file: etcd-prod-key.pem
+etcd_channel: stable
+etcd_cluster_size: 3
+etcd_max_cluster_size: 9
+etcd_health_check_period: 60
+etcd_asg_name: etcd-asg-prod
+etcd_lc_name: etcd-lc-prod
+
 etcd_instance_type: r3.large      # Memory optimized 15GB RAM
-etcd_instance_image: ami-6b1cd400 # CoreOS stable 717.3.0 (HVM)
+
 etcd_instance_tags:
-  Name: etcd
-  group: gaia
-  type: cluster_node
-  decription: etcd HA Cluster Node
+  - Name: etcd
+    group: gaia
+    type: cluster_node
+    env: production
+    decription: etcd HA Cluster Node
+
+etcd_security_group:
+  name: etcd_sg_prod
+  desc: the security group for etcd cluster
+  rules:
+    - proto: tcp
+      from_port: 2379
+      to_port: 2379
+      group_name: etcd_sg_prod
+    - proto: tcp
+      from_port: 2380
+      to_port: 2380
+      group_name: etcd_sg_prod

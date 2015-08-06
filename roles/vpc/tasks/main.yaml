@@ -8,6 +8,14 @@
     wait: true
   register: ec2_vpc_out
 
+- name: get vpc id
+  set_fact:
+    vpc_id: "{{ ec2_vpc_out.vpc_id }}"
+
+- name: get vpc private subnets
+  set_fact:
+    vpc_private_subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private') }}"
+
 - name: search for the latest NAT AMI image
   ec2_ami_find:
     region: "{{ ec2_region }}"

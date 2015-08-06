@@ -1,0 +1,57 @@
+- debug: var=vpc_id
+
+- name: Create the security group for the etcd cluster
+  ec2_group:
+    name: "{{ etcd_security_group.name }}"
+    description: "{{ etcd_security_group.desc }}"
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ ec2_region }}"
+    rules: "{{ etcd_security_group.rules }}"
+  register: etcd_sg
+
+# generate user-data from template
+- set_fact:
+    discovery_url: 'https://discovery.etcd.io/new?size={{etcd_cluster_size}}'
+- name: create template
+  template: src='user-data.j2' dest='/tmp/user-data.txt'
+- name: load user-data content
+  set_fact:
+    user_data: "{{ lookup('file', '/tmp/user-data.txt') | b64encode}}"
+
+# search for latest CoreOS AMI from 'channel'
+- name: search for the latest CoreOS AMI image from "{{ etcd_channel }}"
+  ec2_ami_find:
+    region: "{{ ec2_region }}"
+    name: "CoreOS-{{etcd_channel}}-*"
+    virtualization_type: hvm
+    sort: name
+    sort_order: descending
+    sort_end: 1
+    no_result_action: fail
+  register: find_out
+- name: get CoreOS AMI
+  set_fact:
+    etcd_ami: "{{ find_out.results[0] }}"
+
+# create etcd launch configuration
+- name: create etcd launch configuration
+  ec2_lc:
+    name: "{{ etcd_lc_name }}"
+    region: "{{ ec2_region }}"
+    image_id: "{{ etcd_ami.ami_id }}"
+    security_groups: "{{ etcd_sg.group_id }}"
+    instance_type: "{{ etcd_instance_type }}"
+    user_data: "{{ user_data }}"
+
+# create etcd autoscale group
+- name: create etcd autoscale group
+  ec2_asg:
+    name: "{{ etcd_asg_name }}"
+    region: "{{ ec2_region }}"
+    launch_config_name: "{{ etcd_lc_name }}"
+    health_check_period: "{{ etcd_health_check_period }}"
+    desired_capacity: "{{ etcd_cluster_size }}"
+    min_size: "{{ etcd_cluster_size }}"
+    max_size: "{{ etcd_max_cluster_size }}"
+    tags: "{{ etcd_instance_tags }}"
+    vpc_zone_identifier: "{{ vpc_private_subnets }}"

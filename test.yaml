@@ -1,8 +1,29 @@
-- hosts: tag_Name_NAT
-  gather_facts: False
+- hosts: localhost
   connection: local
+  gather_facts: False
+  vars:
+    channel: beta
   vars_files:
   - group_vars/all.yaml
+  - group_vars/envs/{{ env | default("production") }}/vpc.yaml
+  - group_vars/envs/{{ env | default("production") }}/etcd.yaml
+  - group_vars/envs/{{ env | default("production") }}/nat.yaml
+  - group_vars/envs/{{ env | default("production") }}/coreos.yaml
 
-  roles:
-    - terminate
+  tasks:
+
+  # search for latest CoreOS AMI from 'channel'
+  - name: search for the latest NAT AMI image
+    ec2_ami_find:
+      region: "{{ ec2_region }}"
+      name: "CoreOS-{{channel}}-*"
+      virtualization_type: hvm
+      sort: name
+      sort_order: descending
+      sort_end: 1
+      no_result_action: fail
+    register: find_out
+  - name: get CoreOS AMI
+    set_fact:
+      etcd_ami: "{{ find_out.results[0] }}"
+  - debug: var=etcd_ami

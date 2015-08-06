@@ -7,6 +7,7 @@
     - name: add to terminate-group
       group_by:
         key: terminate-group
+      when: ec2_tag_env == "{{ env | default("production") }}"
 
 - hosts: localhost
   connection: local
@@ -37,6 +38,9 @@
 
     # create a new VPC
     - role: vpc
+
+    # create etcd cluster (with autoscaling group)
+    - role: etcd_cluster
 
 - hosts: terminate-group
   connection: local
