@@ -18,7 +18,7 @@
   set_fact:
     user_data: "{{ lookup('file', '/tmp/user-data.txt') | b64encode}}"
 
-# search for latest CoreOS AMI from 'channel'
+# search for latest CoreOS AMI from alpha/beta/stable channel
 - name: search for the latest CoreOS AMI image from "{{ etcd_channel }}"
   ec2_ami_find:
     region: "{{ ec2_region }}"

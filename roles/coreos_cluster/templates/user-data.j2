@@ -1,0 +1,74 @@
+#cloud-config
+
+---
+write-files:
+  # workaround: create systemd service file (oneshot) that extracts docker0 ip
+  # from /run/flannel/subnet.env file and prepare a setup of "--dns" option for docker daemon
+  - path: /etc/systemd/system/mk-docker-dns-opts.service
+    permissions: 0644
+    owner: root:root
+    content: |
+      [Unit]
+      Description=Make DNS arg for Docker daemon
+      After=flanneld.service
+      Requires=flanneld.service
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/bash -c 'echo $(grep FLANNEL_SUBNET /run/flannel/subnet.env | sed "s/.*=/DOCKER_OPT_DNS=\\\"--dns=/;s_/.*_\\\"_") >/run/docker_dns_opt.env'
+
+coreos:
+  etcd2:
+    # use same discovery url as for etcd cluster; configure etcd to the "proxy" mode
+    discovery: "{{ discovery_url }}"
+    # listen on both the official ports and the legacy ports for "localhost" only
+    # legacy ports can be omitted if your application doesn't depend on them
+    listen-client-urls: http://localhost:2379,http://localhost:4001
+    # enable proxy mode
+    proxy: on
+  fleet:
+    public-ip: $private_ipv4
+  flannel:
+    interface: $private_ipv4
+  units:
+  - name: flanneld.service
+    command: start
+    drop-ins:
+    - name: 50-network-config.conf
+      content: |
+        [Unit]
+        After=etcd2.service
+        Requires=etcd2.service
+        [Service]
+        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{ "Network": "{{ coreos_flannel_cidr_block }}", "Backend": {"Type": "aws-vpc"} }'
+  - name: etcd2.service
+    command: start
+  - name: fleet.service
+    command: start
+  - name: docker.service
+    drop-ins:
+    - name: 50-mk-docker-dns-opts.conf
+      content: |
+        [Unit]
+        Requires=mk-docker-dns-opts.service
+        After=mk-docker-dns-opts.service
+        [Service]
+        Restart=always
+        Restart=on-failure
+        EnvironmentFile=/run/docker_dns_opt.env
+        ExecStart=
+        ExecStart=/usr/lib/coreos/dockerd --daemon --host=fd:// $DOCKER_OPTS $DOCKER_OPT_DNS $DOCKER_OPT_BIP $DOCKER_OPT_MTU $DOCKER_OPT_IPMASQ
+      command: start
+  - name: docker-tcp.socket
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      Description=Docker Socket for the API
+      [Socket]
+      ListenStream=2375
+      Service=docker.service
+      BindIPv6Only=both
+      [Install]
+      WantedBy=sockets.target
+
+# {{ ansible_managed }}
