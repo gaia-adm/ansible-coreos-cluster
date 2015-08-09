@@ -48,16 +48,6 @@
       wait: true
     register: vpc
 
-  # - name: delete vpc igw
-    # ec2_vpc_igw:
-    #   vpc_id: "{{ vpc.vpc_id }}"
-    #   state: absent
-
-  # - name: delete all vpc subnets
-    # ec2_vpc_subnet:
-    #   vpc_id: "{{ vpc.vpc_id }}"
-    #   state: absent
-
   - name: delete all vpc security groups
     ec2_group:
       region: "{{ ec2_region }}"
@@ -69,7 +59,6 @@
       - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
 
-  # delete VPC
   - name: delete VPC
     ec2_vpc:
       region: "{{ ec2_region }}"
