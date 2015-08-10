@@ -1,3 +1,5 @@
+bastion_vpc_cidr_block: 10.0.0.0/16
+
 vpc_cidr_block: 10.10.0.0/16
 vpc_internet_gateway: "yes"
 
@@ -17,10 +19,10 @@ vpc_subnets:
     resource_tags: { "Name": "private-1", "env": "production", "group": "gaia", "tier": "private"}
   - cidr: 10.10.64.0/20
     az: "{{ ec2_region_az2 }}"
-    resource_tags: { "Name": "private-1", "env": "production", "group": "gaia", "tier": "private"}
+    resource_tags: { "Name": "private-2", "env": "production", "group": "gaia", "tier": "private"}
   - cidr: 10.10.128.0/20
     az: "{{ ec2_region_az3 }}"
-    resource_tags: { "Name": "private-1", "env": "production", "group": "gaia", "tier": "private"}
+    resource_tags: { "Name": "private-3", "env": "production", "group": "gaia", "tier": "private"}
   - cidr: 10.10.144.0/20
     az: "{{ ec2_region_az4 }}"
-    resource_tags: { "Name": "private-1", "env": "production", "group": "gaia", "tier": "private"}
+    resource_tags: { "Name": "private-4", "env": "production", "group": "gaia", "tier": "private"}
