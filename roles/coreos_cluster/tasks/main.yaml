@@ -40,6 +40,7 @@
   ec2_lc:
     name: "{{ coreos_lc_name }}"
     region: "{{ ec2_region }}"
+    key_name: "{{ coreos_keypair_name }}"
     image_id: "{{ coreos_ami.ami_id }}"
     security_groups: "{{ coreos_sg.group_id }}"
     instance_type: "{{ coreos_instance_type }}"

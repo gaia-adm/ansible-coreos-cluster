@@ -38,6 +38,7 @@
   ec2_lc:
     name: "{{ etcd_lc_name }}"
     region: "{{ ec2_region }}"
+    key_name: "{{ etcd_keypair_name }}"
     image_id: "{{ etcd_ami.ami_id }}"
     security_groups: "{{ etcd_sg.group_id }}"
     instance_type: "{{ etcd_instance_type }}"
