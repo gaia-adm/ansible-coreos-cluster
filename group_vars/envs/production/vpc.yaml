@@ -1,9 +1,15 @@
+# Helper variables for bastion VPC
+# Note: make sure they are in sync with corresponging Bastion variables for "env"
 bastion_vpc_cidr_block: 10.0.0.0/16
+bastion_vpc_rt_name: bastion-rt
 
+# VPC variables
 vpc_cidr_block: 10.10.0.0/16
 vpc_internet_gateway: "yes"
 
 vpc_resource_tags: { "Name": "gaia-vpc", "env": "production", "group": "gaia" }
+
+vpc_route_tables_tags: { "Name": "gaia-rt", "env": "production", "group": "gaia" }
 
 vpc_subnets:
   # public subnets

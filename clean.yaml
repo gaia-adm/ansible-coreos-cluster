@@ -59,6 +59,13 @@
       - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
 
+  - name: delete vpc peering
+    ec2_vpc_peering:
+      source_vpc: "{{ bastion_vpc_cidr_block }}"
+      dest_vpc: "{{ vpc.vpc_id }}"
+      region: "{{ ec2_region }}"
+      state: absent
+
   - name: delete VPC
     ec2_vpc:
       region: "{{ ec2_region }}"

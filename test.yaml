@@ -38,5 +38,16 @@
 #         key: terminate-group
 #     - debug: var=terminate-group
 
-  - name: Turning off source destinatiob check
-    local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id i-9570b13e --no-source-dest-check
+  # - name: Turning off source destinatiob check
+  #   local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id i-9570b13e --no-source-dest-check
+
+  - name: get route table by Name
+    ec2_vpc_route_table_facts:
+      region: "{{ ec2_region }}"
+      filters:
+        tag:Name: bastion-rt
+        tag:env: production
+    register: result
+
+  - debug: msg="Route --> {{item.id}}"
+    with_items: "{{result.route_tables}}"

@@ -8,17 +8,22 @@
     wait: true
   register: ec2_vpc_out
 
+- name: get vpc id
+  set_fact:
+    vpc_id: "{{ ec2_vpc_out.vpc_id }}"
+
 - name: create VPC peering to bastion vpc
   ec2_vpc_peering:
     name: "vpc-to-bastion-{{vpc_resource_tags.env}}"
     source_vpc: "{{ bastion_vpc_cidr_block }}"
-    dest_vpc: "{{ ec2_vpc_out.vpc_id }}"
+    dest_vpc: "{{ vpc_id }}"
     region: "{{ ec2_region }}"
     state: present
+  register: vpc_peering_out
 
-- name: get vpc id
+- name: get vpc peering id
   set_fact:
-    vpc_id: "{{ ec2_vpc_out.vpc_id }}"
+    vpc_peering_id: "{{ vpc_peering_out.results[0].id }}"
 
 - name: get vpc private subnets
   set_fact:
@@ -64,8 +69,26 @@
         routes:
           - dest: 0.0.0.0/0
             gw: igw
+          - dest: "{{ bastion_vpc_cidr_block }}"
+            gw: "{{ vpc_peering_id }}"
+        resource_tags: "{{ vpc_route_tables_tags }}"
       - subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private', 'cidr') }}"
         routes:
           - dest: 0.0.0.0/0
             gw: "{{ nat_out.instance_ids[0] }}"
+          - dest: "{{ bastion_vpc_cidr_block }}"
+            gw: "{{ vpc_peering_id }}"
+        resource_tags: "{{ vpc_route_tables_tags }}"
   register: ec2_vpc_out
+
+- name: get bastion vpc route table
+  ec2_vpc_route_table_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      tag:Name: "{{ bastion_vpc_rt_name }}"
+      tag:env: "{{ env | default('production') }}"
+  register: bastion_rts
+
+- name: update bastion route tables
+  local_action: aws ec2 create-route --route-table-id "{{ item.id }}" --destination-cidr-block "{{ vpc_cidr_block }}" --vpc-peering-connection-id "{{ vpc_peering_id }}"
+  with_items: "{{ bastion_rts.route_tables }}"
