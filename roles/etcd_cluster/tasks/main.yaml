@@ -16,7 +16,8 @@
   template: src='user-data.j2' dest='/tmp/user-data.txt'
 - name: load user-data content
   set_fact:
-    user_data: "{{ lookup('file', '/tmp/user-data.txt') | b64encode}}"
+    # user_data: "{{ lookup('file', '/tmp/user-data.txt') | b64encode }}" <-- base64 encoded user-data is not recognized by CoreOS
+    user_data: "{{ lookup('file', '/tmp/user-data.txt') }}"
 
 # search for latest CoreOS AMI from alpha/beta/stable channel
 - name: search for the latest CoreOS AMI image from "{{ etcd_channel }}"

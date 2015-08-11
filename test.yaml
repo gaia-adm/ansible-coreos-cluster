@@ -41,12 +41,12 @@
   # - name: Turning off source destinatiob check
   #   local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id i-9570b13e --no-source-dest-check
 
-  - name: get route table by Name
+  - name: get bastion vpc route table
     ec2_vpc_route_table_facts:
       region: "{{ ec2_region }}"
       filters:
-        tag:Name: bastion-rt
-        tag:env: production
+        tag:Name: "{{ bastion_vpc_rt_name }}"
+        tag:env: "{{ env | default('production') }}"
     register: result
 
   - debug: msg="Route --> {{item.id}}"

@@ -29,3 +29,7 @@ etcd_security_group:
       from_port: 2380
       to_port: 2380
       group_name: etcd_sg_prod
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"

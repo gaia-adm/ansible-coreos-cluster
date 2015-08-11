@@ -90,5 +90,5 @@
   register: bastion_rts
 
 - name: update bastion route tables
-  local_action: aws ec2 create-route --route-table-id "{{ item.id }}" --destination-cidr-block "{{ vpc_cidr_block }}" --vpc-peering-connection-id "{{ vpc_peering_id }}"
+  local_action: command aws ec2 create-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }} --vpc-peering-connection-id {{ vpc_peering_id }}
   with_items: "{{ bastion_rts.route_tables }}"
