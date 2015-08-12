@@ -19,7 +19,7 @@ write-files:
 coreos:
   etcd2:
     # use same discovery url as for etcd cluster; configure etcd to the "proxy" mode
-    discovery: "{{ discovery_url }}"
+    discovery: "{{ etcd_discovery_url }}"
     # listen on both the official ports and the legacy ports for "localhost" only
     # legacy ports can be omitted if your application doesn't depend on them
     listen-client-urls: http://localhost:2379,http://localhost:4001

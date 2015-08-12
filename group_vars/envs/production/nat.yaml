@@ -16,6 +16,10 @@ nat_security_group:
       from_port: 443
       to_port: 443
       group_name: "{{ etcd_security_group.name }}"
+    - proto: udp
+      from_port: 123
+      to_port: 123
+      group_name: "{{ etcd_security_group.name }}"
     - proto: tcp
       from_port: 80
       to_port: 80
@@ -23,6 +27,10 @@ nat_security_group:
     - proto: tcp
       from_port: 443
       to_port: 443
+      group_name: "{{ coreos_security_group.name }}"
+    - proto: udp
+      from_port: 123
+      to_port: 123
       group_name: "{{ coreos_security_group.name }}"
     - proto: tcp
       from_port: 22
@@ -36,4 +44,8 @@ nat_security_group:
     - proto: tcp
       from_port: 443
       to_port: 443
+      cidr_ip: 0.0.0.0/0
+    - proto: udp
+      from_port: 123
+      to_port: 123
       cidr_ip: 0.0.0.0/0

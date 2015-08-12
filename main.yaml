@@ -41,7 +41,7 @@
     # create etcd cluster (with autoscaling group)
     - role: etcd_cluster
 
-    # create coreos cluster (with autoscaling group)
+    # create coreos cluster (with autoscaling group): must run after etcd_cluster role
     - role: coreos_cluster
 
     # setup network: VPC peering, NAT, route tables

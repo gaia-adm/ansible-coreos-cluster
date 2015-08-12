@@ -3,6 +3,8 @@
   gather_facts: False
   vars:
     channel: beta
+    discovery:
+      size: 5
   vars_files:
   - group_vars/all.yaml
   - group_vars/envs/{{ env | default("production") }}/vpc.yaml
@@ -41,13 +43,19 @@
   # - name: Turning off source destinatiob check
   #   local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id i-9570b13e --no-source-dest-check
 
-  - name: get bastion vpc route table
-    ec2_vpc_route_table_facts:
-      region: "{{ ec2_region }}"
-      filters:
-        tag:Name: "{{ bastion_vpc_rt_name }}"
-        tag:env: "{{ env | default('production') }}"
-    register: result
+  # - name: get bastion vpc route table
+  #   ec2_vpc_route_table_facts:
+  #     region: "{{ ec2_region }}"
+  #     filters:
+  #       tag:Name: "{{ bastion_vpc_rt_name }}"
+  #       tag:env: "{{ env | default('production') }}"
+  #   register: result
+  #
+  # - debug: msg="Route --> {{item.id}}"
+  #   with_items: "{{result.route_tables}}"
 
-  - debug: msg="Route --> {{item.id}}"
-    with_items: "{{result.route_tables}}"
+  - name: get discovery url
+    set_fact:
+      discovery_url: "{{ lookup('pipe', 'curl -s https://discovery.etcd.io/new?size='+item) }}"
+    with_items:
+      - "5"

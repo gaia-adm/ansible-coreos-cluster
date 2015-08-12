@@ -7,7 +7,7 @@ coreos_cluster_size: 4
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
 
-coreos_flannel_cidr_block: 10.20.0.0/16
+coreos_flannel_cidr_block: 192.168.0.0/16
 
 # note: for flannel use manually create role with required pilicies
 #       https://coreos.com/flannel/docs/latest/vpc-backend.html

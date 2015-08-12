@@ -10,8 +10,6 @@
   register: coreos_sg
 
 # generate user-data from template
-- set_fact:
-    discovery_url: 'https://discovery.etcd.io/new?size={{coreos_cluster_size}}'
 - name: create template
   template: src='user-data.j2' dest='/tmp/user-data.txt'
 - name: load user-data content

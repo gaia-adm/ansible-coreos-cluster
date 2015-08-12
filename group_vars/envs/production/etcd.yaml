@@ -24,11 +24,11 @@ etcd_security_group:
     - proto: tcp
       from_port: 2379
       to_port: 2379
-      group_name: etcd_sg_prod
+      cidr_ip: "{{ vpc_cidr_block }}"
     - proto: tcp
       from_port: 2380
       to_port: 2380
-      group_name: etcd_sg_prod
+      cidr_ip: "{{ vpc_cidr_block }}"
     - proto: tcp
       from_port: 22
       to_port: 22
