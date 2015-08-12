@@ -44,6 +44,9 @@
     # create coreos cluster (with autoscaling group)
     - role: coreos_cluster
 
+    # setup network: VPC peering, NAT, route tables
+    - role: network
+
 - hosts: terminate-group
   connection: local
   gather_facts: False

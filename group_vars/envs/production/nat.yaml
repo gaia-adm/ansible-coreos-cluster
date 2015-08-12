@@ -3,3 +3,37 @@ nat_keypair_name: nat-prod-keypair
 nat_keypair_file: nat-prod-key.pem
 nat_instance_type: "t2.small"
 nat_instance_tags: { "Name": "NAT", "env": "production", "group": "gaia" }
+
+nat_security_group:
+  name: nat_sg_prod
+  desc: the NAT security group
+  rules:
+    - proto: tcp
+      from_port: 80
+      to_port: 80
+      group_name: "{{ etcd_security_group.name }}"
+    - proto: tcp
+      from_port: 443
+      to_port: 443
+      group_name: "{{ etcd_security_group.name }}"
+    - proto: tcp
+      from_port: 80
+      to_port: 80
+      group_name: "{{ coreos_security_group.name }}"
+    - proto: tcp
+      from_port: 443
+      to_port: 443
+      group_name: "{{ coreos_security_group.name }}"
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+  rules_egress:
+    - proto: tcp
+      from_port: 80
+      to_port: 80
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 443
+      to_port: 443
+      cidr_ip: 0.0.0.0/0
