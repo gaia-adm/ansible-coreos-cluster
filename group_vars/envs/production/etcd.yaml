@@ -30,6 +30,14 @@ etcd_security_group:
       to_port: 2380
       cidr_ip: "{{ vpc_cidr_block }}"
     - proto: tcp
+      from_port: 4001
+      to_port: 4001
+      cidr_ip: "{{ vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 7001
+      to_port: 7001
+      cidr_ip: "{{ vpc_cidr_block }}"
+    - proto: tcp
       from_port: 22
       to_port: 22
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
