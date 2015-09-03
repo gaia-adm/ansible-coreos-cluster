@@ -15,6 +15,12 @@ write-files:
       [Service]
       Type=oneshot
       ExecStart=/bin/bash -c 'echo $(grep FLANNEL_SUBNET /run/flannel/subnet.env | sed "s/.*=/DOCKER_OPT_DNS=\\\"--dns=/;s_/.*_\\\"_") >/run/docker_dns_opt.env'
+  # use separate file for DOCKER_OPTS
+  - path: /run/docker_opts.env
+    permissions: 0644
+    owner: root:root
+    content: |
+      DOCKER_OPTS="--registry-mirror=http://docker-registry.{{ vpc_dns_zone }}:5000"
 
 coreos:
   etcd2:
@@ -55,6 +61,7 @@ coreos:
         Restart=always
         Restart=on-failure
         EnvironmentFile=/run/docker_dns_opt.env
+        EnvironmentFile=/run/docker_opts.env
         ExecStart=
         ExecStart=/usr/lib/coreos/dockerd --daemon --host=fd:// $DOCKER_OPTS $DOCKER_OPT_DNS $DOCKER_OPT_BIP $DOCKER_OPT_MTU $DOCKER_OPT_IPMASQ
       command: start

@@ -1,11 +1,11 @@
 # nat - parameters
-nat_keypair_name: nat-keypair-prod
-nat_keypair_file: nat-key-prod.pem
+nat_keypair_name: nat-keypair-test
+nat_keypair_file: nat-key-test.pem
 nat_instance_type: "t2.small"
-nat_instance_tags: { "Name": "NAT", "env": "production", "group": "gaia" }
+nat_instance_tags: { "Name": "NAT", "env": "testing", "group": "gaia" }
 
 nat_security_group:
-  name: nat_sg_prod
+  name: nat_sg_test
   desc: the NAT security group
   rules:
     - proto: tcp

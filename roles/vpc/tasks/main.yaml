@@ -8,6 +8,23 @@
     wait: true
   register: ec2_vpc_out
 
+# associate VPC with Bastion DNS
+- name: discover DNS zone
+  local_action: "command aws route53 list-hosted-zones-by-name --dns-name {{ vpc_dns_zone }} --max-items 2 --output json"
+  register: list_zones_result_out
+- set_fact:
+    list_zones_result: "{{ list_zones_result_out.stdout | from_json }}"
+
+- name: Check DNS zone count
+  fail:
+    msg: "Expected exactly one DNS zone"
+  when: "{{list_zones_result.HostedZones | length}} != 1"
+- set_fact:
+    dns_zone_id: "{{ list_zones_result.HostedZones[0].Id }}"
+
+- name: associate VPC with Bastion DNS zone
+  local_action: "command aws route53 associate-vpc-with-hosted-zone --hosted-zone-id {{ dns_zone_id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ ec2_vpc_out.vpc_id }} --output json"
+
 - name: get vpc id
   set_fact:
     vpc_id: "{{ ec2_vpc_out.vpc_id }}"

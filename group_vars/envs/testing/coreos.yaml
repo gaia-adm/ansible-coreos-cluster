@@ -1,6 +1,6 @@
 # coreos - parameters
-coreos_keypair_name: coreos-keypair-prod
-coreos_keypair_file: coreos-key-prod.pem
+coreos_keypair_name: coreos-keypair-test
+coreos_keypair_file: coreos-key-test.pem
 
 # choose either: alpha, beta or stable channel
 # (!) currently using "alpha" since flannel 0.5.0 (with AWS backend support) available only on alpha
@@ -17,9 +17,9 @@ coreos_flannel_cidr_block: 192.168.0.0/16
 #       https://coreos.com/blog/introducing-flannel-0.5.0-with-aws-and-gce/
 coreos_instance_profile: flannel-role
 
-coreos_asg_name: coreos-asg-prod
+coreos_asg_name: coreos-asg-test
 
-coreos_lc_name: coreos-lc-prod
+coreos_lc_name: coreos-lc-test
 
 coreos_instance_type: m3.xlarge     # 4 vCPU, 15GB RAM, 2x40 SSD
 
@@ -27,29 +27,29 @@ coreos_instance_tags:
   - Name: coreos
     group: gaia
     type: cluster_node
-    env: production
+    env: testing
     decription: CoreOS HA Cluster Node
 
 coreos_security_group:
-  name: coreos_sg_prod
+  name: coreos_sg_test
   desc: the security group for CoreOS cluster
   rules:
     - proto: tcp
       from_port: 2379
       to_port: 2379
-      group_name: coreos_sg_prod
+      group_name: coreos_sg_test
     - proto: tcp
       from_port: 2380
       to_port: 2380
-      group_name: coreos_sg_prod
+      group_name: coreos_sg_test
     - proto: tcp
       from_port: 4001
       to_port: 4001
-      group_name: coreos_sg_prod
+      group_name: coreos_sg_test
     - proto: tcp
       from_port: 7001
       to_port: 7001
-      group_name: coreos_sg_prod
+      group_name: coreos_sg_test
     - proto: tcp
       from_port: 22
       to_port: 22
