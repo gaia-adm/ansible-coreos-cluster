@@ -20,7 +20,12 @@ write-files:
     permissions: 0644
     owner: root:root
     content: |
-      DOCKER_OPTS="--registry-mirror=http://docker-registry.{{ vpc_dns_zone }}:5000"
+      DOCKER_OPTS="--registry-mirror=http://docker-registry.{{ vpc_dns_zone }}:5443"
+  - path: /etc/ssl/certs/gaia-ca.pem
+    permissions: 0644
+    owner: root:root
+    encoding: base64
+    content: "{{ gaia_ca_crt_content }}"
 
 coreos:
   etcd2:
@@ -36,6 +41,15 @@ coreos:
   flannel:
     interface: $private_ipv4
   units:
+  - name: updatecertificates.service
+    command: start
+    content: |
+      [Unit]
+      Description=Update root CAs
+      Before=docker.service
+      [Service]
+      ExecStart=/usr/sbin/update-ca-certificates
+      Type=oneshot
   - name: flanneld.service
     command: start
     drop-ins:

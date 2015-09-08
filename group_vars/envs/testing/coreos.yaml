@@ -54,3 +54,6 @@ coreos_security_group:
       from_port: 22
       to_port: 22
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
+
+# https server certificate
+gaia_ca_file: gaia-ca-test
