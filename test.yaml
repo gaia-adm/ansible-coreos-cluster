@@ -1,10 +1,6 @@
 - hosts: localhost
   connection: local
   gather_facts: False
-  vars:
-    channel: beta
-    discovery:
-      size: 5
   vars_files:
   - group_vars/all.yaml
   - group_vars/envs/{{ env | default("production") }}/vpc.yaml
@@ -13,6 +9,44 @@
   - group_vars/envs/{{ env | default("production") }}/coreos.yaml
 
   tasks:
+  - set_fact:
+      gaia_ca_crt_file: "keys/{{ gaia_ca_file }}.crt"
+  - stat:
+      path: "{{ gaia_ca_crt_file }}"
+    register: st_out
+  - fail:
+      msg: "Missing {{ gaia_ca_crt_file }} file. Please copy this file from ansible-bastion or make keys directory a symlink"
+    when: st_out.stat.exists != True
+  # find vpc id
+  - name: find vpc id
+    ec2_vpc:
+      region: "{{ ec2_region }}"
+      cidr_block: "{{ vpc_cidr_block }}"
+      resource_tags: "{{ vpc_resource_tags }}"
+      internet_gateway: "{{ vpc_internet_gateway|string }}"
+      subnets: "{{ vpc_subnets }}"
+      wait: true
+    register: vpc
+
+  # associate VPC with Bastion DNS
+  - name: discover DNS zone
+    local_action: "command aws route53 list-hosted-zones-by-name --dns-name {{ vpc_dns_zone }} --max-items 2 --output json"
+    register: list_zones_result_out
+  - set_fact:
+      list_zones_result: "{{ list_zones_result_out.stdout | from_json }}"
+
+  - name: Check DNS zone count
+    fail:
+      msg: "Expected exactly one DNS zone"
+    when: "{{list_zones_result.HostedZones | length}} != 1"
+
+#  - name: associate VPC with Bastion DNS zone
+#    local_action: "command aws route53 associate-vpc-with-hosted-zone --hosted-zone-id {{ list_zones_result.HostedZones[0].Id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ vpc.vpc_id }} --output json"
+
+  # disassociate VPC from Bastion DNS
+  - name: disassociate VPC from Bastion DNS zone
+    local_action: "command aws route53 disassociate-vpc-from-hosted-zone --hosted-zone-id {{ list_zones_result.HostedZones[0].Id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ vpc.vpc_id }} --output json"
+
 
   # search for latest CoreOS AMI from 'channel'
   # - name: search for the latest NAT AMI image
@@ -53,9 +87,3 @@
   #
   # - debug: msg="Route --> {{item.id}}"
   #   with_items: "{{result.route_tables}}"
-
-  - name: get discovery url
-    set_fact:
-      discovery_url: "{{ lookup('pipe', 'curl -s https://discovery.etcd.io/new?size='+item) }}"
-    with_items:
-      - "5"
