@@ -1,12 +1,12 @@
 # etcd - common instance parameters
-etcd_keypair_name: etcd-keypair-test
-etcd_keypair_file: etcd-key-test.pem
+etcd_keypair_name: etcd-keypair-dev
+etcd_keypair_file: etcd-key-dev.pem
 etcd_channel: stable
 etcd_cluster_size: 3
 etcd_max_cluster_size: 9
 etcd_health_check_period: 60
-etcd_asg_name: etcd-asg-test
-etcd_lc_name: etcd-lc-test
+etcd_asg_name: etcd-asg-dev
+etcd_lc_name: etcd-lc-dev
 
 etcd_instance_type: r3.large      # Memory optimized 15GB RAM
 
@@ -14,11 +14,11 @@ etcd_instance_tags:
   - Name: etcd
     group: gaia
     type: cluster_node
-    env: testing
+    env: develop
     decription: etcd HA Cluster Node
 
 etcd_security_group:
-  name: etcd_sg_test
+  name: etcd_sg_dev
   desc: the security group for etcd cluster
   rules:
     - proto: tcp

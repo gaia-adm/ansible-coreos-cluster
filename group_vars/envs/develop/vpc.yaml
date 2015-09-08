@@ -1,37 +1,37 @@
 # Helper variables for bastion VPC
 # Note: make sure they are in sync with corresponging Bastion variables for "env"
-bastion_vpc_cidr_block: 10.50.0.0/16
+bastion_vpc_cidr_block: 10.100.0.0/16
 bastion_vpc_rt_name: bastion-rt
 
 # VPC variables
 vpc_cidr_block: 10.60.0.0/16
 vpc_internet_gateway: "yes"
 
-vpc_resource_tags: { "Name": "gaia-vpc", "env": "testing", "group": "gaia" }
+vpc_resource_tags: { "Name": "gaia-vpc", "env": "develop", "group": "gaia" }
 
-vpc_route_tables_tags: { "Name": "gaia-rt", "env": "testing", "group": "gaia" }
+vpc_route_tables_tags: { "Name": "gaia-rt", "env": "develop", "group": "gaia" }
 
 vpc_subnets:
   # public subnets
   - cidr: 10.60.0.0/20
     az: "{{ ec2_region_az1 }}"
-    resource_tags: { "Name": "public-1", "env": "testing", "group": "gaia", "tier": "public"}
+    resource_tags: { "Name": "public-1", "env": "develop", "group": "gaia", "tier": "public"}
   - cidr: 10.60.16.0/20
     az: "{{ ec2_region_az2 }}"
-    resource_tags: { "Name": "public-2", "env": "testing", "group": "gaia", "tier": "public"}
+    resource_tags: { "Name": "public-2", "env": "develop", "group": "gaia", "tier": "public"}
   # private subnets
   - cidr: 10.60.32.0/20
     az: "{{ ec2_region_az1 }}"
-    resource_tags: { "Name": "private-1", "env": "testing", "group": "gaia", "tier": "private"}
+    resource_tags: { "Name": "private-1", "env": "develop", "group": "gaia", "tier": "private"}
   - cidr: 10.60.64.0/20
     az: "{{ ec2_region_az2 }}"
-    resource_tags: { "Name": "private-2", "env": "testing", "group": "gaia", "tier": "private"}
+    resource_tags: { "Name": "private-2", "env": "develop", "group": "gaia", "tier": "private"}
   - cidr: 10.60.128.0/20
     az: "{{ ec2_region_az3 }}"
-    resource_tags: { "Name": "private-3", "env": "testing", "group": "gaia", "tier": "private"}
+    resource_tags: { "Name": "private-3", "env": "develop", "group": "gaia", "tier": "private"}
   - cidr: 10.60.144.0/20
     az: "{{ ec2_region_az4 }}"
-    resource_tags: { "Name": "private-4", "env": "testing", "group": "gaia", "tier": "private"}
+    resource_tags: { "Name": "private-4", "env": "develop", "group": "gaia", "tier": "private"}
 
 # must match Bastion variable
-vpc_dns_zone: "gaia-test.priv"
+vpc_dns_zone: "gaia-dev.priv"
