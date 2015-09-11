@@ -20,7 +20,7 @@ write-files:
     permissions: 0644
     owner: root:root
     content: |
-      DOCKER_OPTS="--registry-mirror=http://docker-registry.{{ vpc_dns_zone }}:5443"
+      DOCKER_OPTS="--registry-mirror=https://docker-registry.{{ vpc_dns_zone }}:5443"
   - path: /etc/ssl/certs/gaia-ca.pem
     permissions: 0644
     owner: root:root
