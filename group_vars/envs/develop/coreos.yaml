@@ -11,6 +11,10 @@ coreos_cluster_size: 4
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
 
+# size in GB
+coreos_volume_size: 40
+coreos_volume_type: gp2
+
 coreos_flannel_cidr_block: 192.168.0.0/16
 
 # note: for flannel use manually create role with required pilicies

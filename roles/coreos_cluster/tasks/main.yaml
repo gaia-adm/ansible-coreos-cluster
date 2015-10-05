@@ -59,6 +59,11 @@
     instance_type: "{{ coreos_instance_type }}"
     instance_profile_name: "{{ coreos_instance_profile }}"
     user_data: "{{ user_data }}"
+    volumes:
+      - device_name: /dev/xvda
+        volume_type: "{{ coreos_volume_type }}"
+        volume_size: "{{ coreos_volume_size }}"
+        delete_on_termination: true
 
 # create CoreOS autoscale group
 - name: create CoreOS autoscale group
