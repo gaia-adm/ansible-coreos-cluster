@@ -64,4 +64,4 @@ coreos_security_group:
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
 
 # https server certificate
-gaia_ca_file: gaia-ca-prod
+gaia_ca_file: "ca.{{ vpc_dns_zone }}"
