@@ -37,6 +37,7 @@ export AWS_DEFAULT_AZ4='us-east-1e'
 ```
 > **Note**: protect your AWS access key and secret access key
 
+Region needs to be set also in inventory/ec2.ini file
 
 `ec2.py` script is used to setup Ansible [Dynamic Inventory](http://docs.ansible.com/ansible/intro_dynamic_inventory.html) for AWS EC2.
 
