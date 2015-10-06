@@ -13,17 +13,15 @@
   local_action: "command aws route53 list-hosted-zones-by-name --dns-name {{ vpc_dns_zone }} --max-items 2 --output json"
   register: list_zones_result_out
 - set_fact:
-    list_zones_result: "{{ list_zones_result_out.stdout | from_json }}"
+    dns_zone: "{{ list_zones_result_out.stdout | from_json | get_dns_zone(vpc_dns_zone + '.') }}"
 
-- name: Check DNS zone count
+- name: Check DNS zone existence
   fail:
-    msg: "Expected exactly one DNS zone"
-  when: "{{list_zones_result.HostedZones | length}} != 1"
-- set_fact:
-    dns_zone_id: "{{ list_zones_result.HostedZones[0].Id }}"
+    msg: "Expected DNS zone was not found"
+  when: dns_zone == ""
 
 - name: associate VPC with Bastion DNS zone
-  local_action: "command aws route53 associate-vpc-with-hosted-zone --hosted-zone-id {{ dns_zone_id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ ec2_vpc_out.vpc_id }} --output json"
+  local_action: "command aws route53 associate-vpc-with-hosted-zone --hosted-zone-id {{ dns_zone.Id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ ec2_vpc_out.vpc_id }} --output json"
 
 - name: get vpc id
   set_fact:

@@ -10,6 +10,10 @@ def get_subnets(value, tag_key, tag_value, return_key='id'):
 
     return subnets
 
+def get_dns_zone(value, zone_name):
+    for zone in value['HostedZones']:
+        if zone['Name'] == zone_name:
+            return zone
 
 class FilterModule(object):
     ''' Ansible core jinja2 filters '''
@@ -17,4 +21,5 @@ class FilterModule(object):
     def filters(self):
         return {
             'get_subnets': get_subnets,
+            'get_dns_zone': get_dns_zone
         }
