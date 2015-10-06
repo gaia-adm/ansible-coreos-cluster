@@ -10,6 +10,13 @@ etcd_lc_name: etcd-lc-dev
 
 etcd_instance_type: r3.large      # Memory optimized 15GB RAM
 
+etcd_block_device_mappings:
+  - DeviceName: /dev/xvda
+    Ebs:
+      VolumeSize: 10
+      VolumeType: "gp2"
+      DeleteOnTermination: true
+
 etcd_instance_tags:
   - Name: etcd
     group: gaia

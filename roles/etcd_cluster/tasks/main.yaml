@@ -38,14 +38,7 @@
 
 # create etcd launch configuration
 - name: create etcd launch configuration
-  ec2_lc:
-    name: "{{ etcd_lc_name }}"
-    region: "{{ ec2_region }}"
-    key_name: "{{ etcd_keypair_name }}"
-    image_id: "{{ etcd_ami.ami_id }}"
-    security_groups: "{{ etcd_sg.group_id }}"
-    instance_type: "{{ etcd_instance_type }}"
-    user_data: "{{ user_data }}"
+  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ etcd_lc_name }}' --key-name '{{ etcd_keypair_name }}' --image-id '{{ etcd_ami.ami_id }}' --security-groups '{{ etcd_sg.group_id }}' --instance-type '{{ etcd_instance_type }}' --user-data 'file:///tmp/user-data.txt' --block-device-mappings '{{ etcd_block_device_mappings | to_json }}'"
 
 # create etcd autoscale group
 - name: create etcd autoscale group

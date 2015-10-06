@@ -4,6 +4,9 @@ nat_keypair_file: nat-key-dev.pem
 nat_instance_type: "t2.small"
 nat_instance_tags: { "Name": "NAT", "env": "develop", "group": "gaia" }
 
+# size in GB
+nat_volume_size: 10
+
 nat_security_group:
   name: nat_sg_dev
   desc: the NAT security group

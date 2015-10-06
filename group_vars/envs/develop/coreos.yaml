@@ -12,8 +12,12 @@ coreos_max_cluster_size: 16
 coreos_health_check_period: 60
 
 # size in GB
-coreos_volume_size: 40
-coreos_volume_type: gp2
+coreos_block_device_mappings:
+  - DeviceName: /dev/xvda
+    Ebs:
+      VolumeSize: 40
+      VolumeType: "gp2"
+      DeleteOnTermination: true
 
 coreos_flannel_cidr_block: 192.168.0.0/16
 

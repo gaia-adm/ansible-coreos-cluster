@@ -47,6 +47,11 @@
     assign_public_ip: yes
     source_dest_check: no
     wait: yes
+    volumes:
+      - device_name: /dev/xvda
+        volume_type: standard
+        volume_size: "{{ nat_volume_size }}"
+        delete_on_termination: true
   register: nat_out
 
 - name: update vpc routing tables

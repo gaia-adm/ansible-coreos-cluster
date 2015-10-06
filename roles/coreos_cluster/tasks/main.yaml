@@ -50,20 +50,7 @@
 # note: for flannel use manually create role with required pilicies
 #       https://coreos.com/flannel/docs/latest/vpc-backend.html
 - name: create CoreOS launch configuration
-  ec2_lc:
-    name: "{{ coreos_lc_name }}"
-    region: "{{ ec2_region }}"
-    key_name: "{{ coreos_keypair_name }}"
-    image_id: "{{ coreos_ami.ami_id }}"
-    security_groups: "{{ coreos_sg.group_id }}"
-    instance_type: "{{ coreos_instance_type }}"
-    instance_profile_name: "{{ coreos_instance_profile }}"
-    user_data: "{{ user_data }}"
-    volumes:
-      - device_name: /dev/xvda
-        volume_type: "{{ coreos_volume_type }}"
-        volume_size: "{{ coreos_volume_size }}"
-        delete_on_termination: true
+  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ coreos_lc_name }}' --key-name '{{ coreos_keypair_name }}' --image-id '{{ coreos_ami.ami_id }}' --security-groups '{{ coreos_sg.group_id }}' --instance-type '{{ coreos_instance_type }}' --iam-instance-profile '{{ coreos_instance_profile }}' --user-data 'file:///tmp/user-data.txt' --block-device-mappings '{{ coreos_block_device_mappings | to_json }}'"
 
 # create CoreOS autoscale group
 - name: create CoreOS autoscale group
