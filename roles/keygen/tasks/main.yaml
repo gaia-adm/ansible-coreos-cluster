@@ -4,10 +4,15 @@
     region: "{{ keypair_region }}"
     name: "{{ keypair_name }}"
   register: keypair
+
+- name: Create keys/region directory
+  file: path=keys/{{ ec2_region }} state=directory mode=0700
+  when: keypair.changed
+
 # !!! Keep local file safe on your local machine only
 - name: write generated key to local file
   copy:
-    dest: keys/{{ keypair_file }}
+    dest: keys/{{ ec2_region }}/{{ keypair_file }}
     content: "{{ keypair.key.private_key }}"
     mode: 0600
   when: keypair.changed

@@ -10,7 +10,7 @@
 
   tasks:
   - set_fact:
-      gaia_ca_crt_file: "keys/{{ gaia_ca_file }}.crt"
+      gaia_ca_crt_file: "keys/{{ ec2_region }}/{{ gaia_ca_file }}.crt"
   - stat:
       path: "{{ gaia_ca_crt_file }}"
     register: st_out
