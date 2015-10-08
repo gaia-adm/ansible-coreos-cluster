@@ -14,6 +14,15 @@
 - set_fact:
     gaia_ca_crt_content: "{{ gaia_ca_crt_content_out.stdout }}"
 
+- name: create security group for ELB
+  ec2_group:
+    name: "{{ elb_security_group.name }}"
+    description: "{{ elb_security_group.desc }}"
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ ec2_region }}"
+    rules: "{{ elb_security_group.rules }}"
+  register: elb_sg
+
 - name: Create the security group for the CoreOS cluster
   ec2_group:
     name: "{{ coreos_security_group.name }}"
@@ -46,6 +55,31 @@
   set_fact:
     coreos_ami: "{{ find_out.results[0] }}"
 
+- name: create ELB
+  ec2_elb_lb:
+    name: "{{ coreos_elb_name }}"
+    state: present
+    connection_draining_timeout: 60
+    cross_az_load_balancing: "yes"
+    region: "{{ ec2_region }}"
+    security_group_ids: "{{ elb_sg.group_id }}"
+    subnets: "{{ vpc_public_subnets }}"
+    listeners:
+      - protocol: http
+        load_balancer_port: 80
+        instance_port: 80
+      - protocol: http
+        load_balancer_port: 1936
+        instance_port: 1936
+    health_check:
+      ping_protocol: http
+      ping_port: 80
+      ping_path: "/mgs/"
+      response_timeout: 5
+      interval: 10
+      unhealthy_threshold: 4
+      healthy_threshold: 5
+
 # create CoreOS launch configuration
 # note: for flannel use manually create role with required pilicies
 #       https://coreos.com/flannel/docs/latest/vpc-backend.html
@@ -56,6 +90,8 @@
 - name: create CoreOS autoscale group
   ec2_asg:
     name: "{{ coreos_asg_name }}"
+    load_balancers:
+      - "{{ coreos_elb_name }}"
     region: "{{ ec2_region }}"
     launch_config_name: "{{ coreos_lc_name }}"
     health_check_period: "{{ coreos_health_check_period }}"
