@@ -61,6 +61,12 @@
   - name: disassociate VPC from Bastion DNS zone
     local_action: "command aws route53 disassociate-vpc-from-hosted-zone --hosted-zone-id {{ dns_zone.Id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ vpc.vpc_id }} --output json"
 
+  - name: delete coreos ELB
+    ec2_elb_lb:
+      name: "{{ coreos_elb_name }}"
+      state: absent
+      region: "{{ ec2_region }}"
+
   - name: delete all vpc security groups
     ec2_group:
       region: "{{ ec2_region }}"
@@ -72,6 +78,7 @@
       - { name: "{{ nat_security_group.name }}", description: "{{ nat_security_group.desc }}"}
       - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
+      - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}
 
   - name: delete vpc peering
     ec2_vpc_peering:
