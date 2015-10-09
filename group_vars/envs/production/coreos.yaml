@@ -29,6 +29,8 @@ coreos_asg_name: coreos-asg-prod
 
 coreos_lc_name: coreos-lc-prod
 
+coreos_elb_name: coreos-elb-prod
+
 coreos_instance_type: m3.xlarge     # 4 vCPU, 15GB RAM, 2x40 SSD
 
 coreos_instance_tags:
@@ -37,6 +39,23 @@ coreos_instance_tags:
     type: cluster_node
     env: production
     decription: CoreOS HA Cluster Node
+
+elb_security_group:
+  name: elb_sg_prod
+  desc: the security group for ELB
+  rules:
+    - proto: tcp
+      from_port: 80
+      to_port: 80
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 443
+      to_port: 443
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 1936
+      to_port: 1936
+      cidr_ip: 0.0.0.0/0
 
 coreos_security_group:
   name: coreos_sg_prod
@@ -62,6 +81,14 @@ coreos_security_group:
       from_port: 22
       to_port: 22
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 80
+      to_port: 80
+      group_id: "{{ elb_sg.group_id }}"
+    - proto: tcp
+      from_port: 1936
+      to_port: 1936
+      group_id: "{{ elb_sg.group_id }}"
 
 # https server certificate
 gaia_ca_file: "ca.{{ vpc_dns_zone }}"
