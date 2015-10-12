@@ -69,11 +69,14 @@
         load_balancer_port: 80
         instance_port: 80
       - protocol: http
+        load_balancer_port: 88
+        instance_port: 88
+      - protocol: http
         load_balancer_port: 1936
         instance_port: 1936
     health_check:
       ping_protocol: http
-      ping_port: 80
+      ping_port: 88
       ping_path: "/mgs/"
       response_timeout: 5
       interval: 10
