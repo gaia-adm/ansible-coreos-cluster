@@ -41,6 +41,9 @@ coreos:
   flannel:
     interface: $private_ipv4
   units:
+  # start the service manually to perform coreos update
+  - name: update-engine.service
+    command: stop
   - name: updatecertificates.service
     command: start
     content: |

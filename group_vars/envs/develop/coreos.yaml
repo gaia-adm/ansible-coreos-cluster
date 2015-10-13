@@ -5,7 +5,7 @@ coreos_keypair_file: coreos-key-dev.pem
 # choose either: alpha, beta or stable channel
 # (!) currently using "alpha" since flannel 0.5.0 (with AWS backend support) available only on alpha
 coreos_channel: alpha
-coreos_version: 815.0.0
+coreos_version: 833.0.0
 
 coreos_cluster_size: 4
 coreos_max_cluster_size: 16
