@@ -49,6 +49,10 @@ elb_security_group:
       to_port: 80
       cidr_ip: 0.0.0.0/0
     - proto: tcp
+      from_port: 88
+      to_port: 88
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
       from_port: 443
       to_port: 443
       cidr_ip: 0.0.0.0/0
@@ -84,6 +88,10 @@ coreos_security_group:
     - proto: tcp
       from_port: 80
       to_port: 80
+      group_id: "{{ elb_sg.group_id }}"
+   - proto: tcp
+      from_port: 88
+      to_port: 88
       group_id: "{{ elb_sg.group_id }}"
     - proto: tcp
       from_port: 1936
