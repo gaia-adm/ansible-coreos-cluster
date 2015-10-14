@@ -14,6 +14,17 @@
 - set_fact:
     gaia_ca_crt_content: "{{ gaia_ca_crt_content_out.stdout }}"
 
+- name: create self-signed certificate for ELB
+  local_action: command openssl req -new -nodes -x509 -subj "/C=US/ST=California/L=Palo Alto/O=HP Enterprise/CN=*.{{ ec2_region }}.elb.amazonaws.com" -days 3650 -keyout keys/{{ ec2_region }}/elb.{{ ec2_region }}.key -out keys/{{ ec2_region }}/elb.{{ ec2_region }}.crt -extensions v3_ca creates=keys/{{ ec2_region }}/elb.{{ ec2_region }}.crt
+
+- name: upload self-signed certificate for ELB
+  local_action: command aws iam upload-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }} --certificate-body file://keys/{{ ec2_region }}/elb.{{ ec2_region }}.crt --private-key file://keys/{{ ec2_region }}/elb.{{ ec2_region }}.key
+#  iam_cert:
+#    name: ELB_Certificate.{{ ec2_region }}
+#    state: present
+#    cert: ./keys/{{ ec2_region }}/elb.{{ ec2_region }}.crt
+#    key: ./keys/{{ ec2_region }}/elb.{{ ec2_region }}.key
+
 - name: create security group for ELB
   ec2_group:
     name: "{{ elb_security_group.name }}"
@@ -71,6 +82,16 @@
       - protocol: http
         load_balancer_port: 88
         instance_port: 88
+      - protocol: https
+        load_balancer_port: 443
+        instance_protocol: http
+        instance_port: 80
+        ssl_certificate_id: "arn:aws:iam::662068354453:server-certificate/ELB_Certificate.{{ ec2_region }}"
+      - protocol: https
+        load_balancer_port: 444
+        instance_protocol: http
+        instance_port: 88
+        ssl_certificate_id: "arn:aws:iam::662068354453:server-certificate/ELB_Certificate.{{ ec2_region }}"
       - protocol: http
         load_balancer_port: 1936
         instance_port: 1936

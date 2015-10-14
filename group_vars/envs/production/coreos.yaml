@@ -57,6 +57,10 @@ elb_security_group:
       to_port: 443
       cidr_ip: 0.0.0.0/0
     - proto: tcp
+      from_port: 444
+      to_port: 444
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
       from_port: 1936
       to_port: 1936
       cidr_ip: 0.0.0.0/0
