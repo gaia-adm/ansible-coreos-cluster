@@ -26,12 +26,6 @@ vpc_subnets:
   - cidr: 10.10.64.0/20
     az: "{{ ec2_region_az2 }}"
     resource_tags: { "Name": "private-2", "env": "production", "group": "gaia", "tier": "private"}
-  - cidr: 10.10.128.0/20
-    az: "{{ ec2_region_az3 }}"
-    resource_tags: { "Name": "private-3", "env": "production", "group": "gaia", "tier": "private"}
-  - cidr: 10.10.144.0/20
-    az: "{{ ec2_region_az4 }}"
-    resource_tags: { "Name": "private-4", "env": "production", "group": "gaia", "tier": "private"}
 
 # must match Bastion variable
 vpc_dns_zone: "gaia-prod.{{ ec2_region }}.priv"
