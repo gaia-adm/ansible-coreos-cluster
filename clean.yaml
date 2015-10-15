@@ -71,9 +71,7 @@
   # delete ELB self-signed certificate
   - name: delete self-signed certificate for ELB
     local_action: command aws iam delete-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }}
-#    iam_cert:
-#      name: ELB_Certificate.{{ ec2_region }}
-#      state: absent
+    ignore_errors: yes
 
   - name: delete all vpc security groups
     ec2_group:
