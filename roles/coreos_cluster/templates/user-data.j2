@@ -51,6 +51,9 @@ coreos:
       Before=sysinit.target
       [Service]
       Type=oneshot
+      ExecStartPre=/usr/bin/systemctl set-environment REXRAY_STORAGEDRIVERS=ec2
+      ExecStartPre=/usr/bin/systemctl set-environment AWS_ACCESS_KEY={{ coreos_aws_access_key }}
+      ExecStartPre=/usr/bin/systemctl set-environment AWS_SECRET_KEY={{ coreos_aws_secret_key }}
       ExecStart=/usr/bin/systemctl set-environment ENVIRON={{ env | default("production") }}
       [Install]
       WantedBy=multi-user.target
