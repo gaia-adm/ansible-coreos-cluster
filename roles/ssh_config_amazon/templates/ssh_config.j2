@@ -1,0 +1,69 @@
+# bastion
+Host {{ bastion_hostnames }}
+    User {{ bastion_user }}
+    ForwardAgent yes
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    UserKnownHostsFile /dev/null
+    IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ bastion_keypair_file }}
+    BatchMode yes
+# bastion-NAT
+Host {{ bastion_nat_ips }}
+    User ec2-user
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ bastion_nat_keypair_file }}
+# docker-registry cluster
+Host {{ docker_registry_ips }}
+    User core
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ docker_registry_keypair_file }}
+# coreos cluster
+Host {{ coreos_ips }}
+    User core
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ coreos_keypair_file }}
+# etcd cluster
+Host {{ etcd_ips }}
+    User core
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ etcd_keypair_file }}
+# NAT
+Host {{ nat_ips }}
+    User ec2-user
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ nat_keypair_file }}

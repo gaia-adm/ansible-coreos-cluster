@@ -1,5 +1,14 @@
 from jinja2.utils import soft_unicode
 
+def ec2_instance_info(value, return_key):
+    # collect results from aws ec2 describe-instances result
+    results = []
+    for reservation in value['Reservations']:
+      for instance in reservation['Instances']:
+         results.append(instance[return_key])
+
+    return results
+
 def get_subnets(value, tag_key, tag_value, return_key='id'):
     # return an attribute for all subnets that match
     subnets = []
@@ -20,6 +29,7 @@ class FilterModule(object):
 
     def filters(self):
         return {
+            'ec2_instance_info': ec2_instance_info,
             'get_subnets': get_subnets,
             'get_dns_zone': get_dns_zone
         }

@@ -1,0 +1,52 @@
+# these tasks generate ssh.config for deployment from localhost to amazon
+- set_fact:
+    work_dir: "{{ lookup('env', 'PWD') }}"
+
+# detect bastion information
+- name: Detect Bastion info
+  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ bastion_instance_tags.Name }}' 'Name=tag:group,Values={{ bastion_instance_tags.group }}' 'Name=tag:env,Values={{ bastion_instance_tags.env }}' 'Name=tag:type,Values={{ bastion_instance_tags.type }}'"
+  register: bastion_info_out
+- set_fact:
+    bastion_info_json: "{{ bastion_info_out.stdout | from_json }}"
+- set_fact:
+    bastion_hostname: "{{ bastion_info_json | ec2_instance_info('PublicDnsName') | first }}"
+    bastion_hostnames: "{{ bastion_info_json | ec2_instance_info('PublicDnsName') | join(' ') }}"
+
+# detect Bastion-NAT information
+- name: Detect Bastion-NAT info
+  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ bastion_nat_instance_tags.Name }}' 'Name=tag:group,Values={{ bastion_nat_instance_tags.group }}' 'Name=tag:env,Values={{ bastion_nat_instance_tags.env }}'"
+  register: bastion_nat_info_out
+- set_fact:
+    bastion_nat_ips: "{{ bastion_nat_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
+
+# detect docker-registry information
+- name: Detect docker-registry info
+  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ docker_registry_instance_tags.Name }}' 'Name=tag:group,Values={{ docker_registry_instance_tags.group }}' 'Name=tag:env,Values={{ docker_registry_instance_tags.env }}' 'Name=tag:type,Values={{ docker_registry_instance_tags.type }}'"
+  register: docker_registry_info_out
+- set_fact:
+    docker_registry_ips: "{{ docker_registry_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
+
+# detect coreos cluser information
+- name: Detect CoreOS cluster info
+  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ coreos_instance_tags.Name }}' 'Name=tag:group,Values={{ coreos_instance_tags.group }}' 'Name=tag:env,Values={{ coreos_instance_tags.env }}' 'Name=tag:type,Values={{ coreos_instance_tags.type }}'"
+  register: coreos_info_out
+- set_fact:
+    coreos_ips: "{{ coreos_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
+
+# detect etcd information
+- name: Detect etcd info
+  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ etcd_instance_tags.Name }}' 'Name=tag:group,Values={{ etcd_instance_tags.group }}' 'Name=tag:env,Values={{ etcd_instance_tags.env }}' 'Name=tag:type,Values={{ etcd_instance_tags.type }}'"
+  register: etcd_info_out
+- set_fact:
+    etcd_ips: "{{ etcd_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
+
+# detect NAT information
+- name: Detect NAT info
+  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ nat_instance_tags.Name }}' 'Name=tag:group,Values={{ nat_instance_tags.group }}' 'Name=tag:env,Values={{ nat_instance_tags.env }}'"
+  register: nat_info_out
+- set_fact:
+    nat_ips: "{{ nat_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
+
+# generate ssh_config from template
+- name: generate ssh_config
+  template: src='ssh_config.j2' dest='{{ work_dir }}/keys/{{ ssh_config_file }}'

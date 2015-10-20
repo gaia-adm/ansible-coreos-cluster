@@ -1,0 +1,9 @@
+# This playbook generates ssh_config for connecting from localhost to amazon
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - group_vars/all.yaml
+    - group_vars/envs/{{ env | default("production") }}/ssh_config.yaml
+  roles:
+    - role: ssh_config_amazon

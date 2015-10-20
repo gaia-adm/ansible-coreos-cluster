@@ -1,0 +1,21 @@
+---
+ssh_config_file: ssh_config
+
+bastion_instance_tags: { "Name": "bastion", "group": "gaia", "env": "production", "type": "bastion-vm" }
+bastion_user: "ubuntu"
+bastion_keypair_file: bastion-key-prod.pem
+
+bastion_nat_instance_tags: { "Name": "Bastion_NAT", "group": "gaia", "env": "production" }
+bastion_nat_keypair_file: bastion-nat-key-prod.pem
+
+docker_registry_instance_tags:  { "Name": "docker-registry", "group": "gaia", "env": "production", "type": "docker-registry-vm" }
+docker_registry_keypair_file: docker-registry-key-prod.pem
+
+coreos_instance_tags:  { "Name": "coreos", "group": "gaia", "env": "production", "type": "cluster_node" }
+coreos_keypair_file: coreos-key-prod.pem
+
+etcd_instance_tags:  { "Name": "etcd", "group": "gaia", "env": "production", "type": "cluster_node" }
+etcd_keypair_file: etcd-key-prod.pem
+
+nat_instance_tags: { "Name": "NAT", "group": "gaia", "env": "production" }
+nat_keypair_file: nat-key-prod.pem

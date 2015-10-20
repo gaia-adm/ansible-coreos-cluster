@@ -41,6 +41,19 @@ coreos:
   flannel:
     interface: $private_ipv4
   units:
+  - name: set-env.service
+    command: start
+    content: |
+      [Unit]
+      Description=Set environment
+      DefaultDependencies=no
+      After=systemd-sysctl.service
+      Before=sysinit.target
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/systemctl set-environment ENVIRON={{ env | default("production") }}
+      [Install]
+      WantedBy=multi-user.target
   # start the service manually to perform coreos update
   - name: update-engine.service
     command: stop
