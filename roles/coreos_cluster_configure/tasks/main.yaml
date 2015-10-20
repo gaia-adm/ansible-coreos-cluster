@@ -1,0 +1,17 @@
+- name: Copy mount scripts
+  copy: src="{{ playbook_dir }}/roles/coreos_cluster_configure/files/{{ item }}" dest=~/{{item}}
+  with_items: "{{ mount_scripts }}"
+
+# install tools required for mounting volumes into /opt/bin
+- name: Install mount scripts
+  shell: "sudo install -D -m775 -o root -g root /home/core/{{item}} /opt/bin/{{item}} && rm /home/core/{{item}}"
+  with_items: "{{ mount_scripts }}"
+
+- name: Install jq
+  shell: "wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux32 && sudo install -D -m775 -o root -g root ./jq-linux32 /opt/bin/jq && rm ./jq-linux32"
+
+- name: Install yaml2json
+  shell: "wget https://github.com/bronze1man/yaml2json/raw/master/builds/linux_386/yaml2json && sudo install -D -m775 -o root -g root ./yaml2json /opt/bin/yaml2json && rm ./yaml2json"
+
+- name: Install rexray
+  shell: "wget https://dl.bintray.com/emccode/rexray/stable/0.2.0/rexray-Linux-i386-0.2.0.tar.gz && sudo tar xfz rexray-Linux-i386-0.2.0.tar.gz -C /opt/bin && sudo chown root:root /opt/bin/rexray && sudo chmod 0775 /opt/bin/rexray && rm ./rexray-Linux-i386-0.2.0.tar.gz"
