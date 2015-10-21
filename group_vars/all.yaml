@@ -8,13 +8,13 @@ ec2_region_az2: "{{ lookup('env', 'AWS_DEFAULT_AZ2') }}"
 tenant_id: 662068354453
 
 hz_ids:
-  - us_east_1_Z3AQBSTGFYJSTF
-  - us_west_1_Z2F56UZL2M1ACD
+  - us_east_1_Z35SXDOTRQ7X7K
+  - us_west_1_Z368ELLRRE2KJ0
   - us_west_2_Z1H1FL5HABSF5
-  - eu_central_1_Z21DNDUVLTQW6Q
-  - eu_west_1_Z1BKCTXD74EZPE
+  - eu_central_1_Z215JYRZR1TBD5
+  - eu_west_1_Z32O12XQLNTSW2
   - ap_southeast_1_Z1LMS91P8CMLE5
-  - ap_southeast_2_Z1WCIGYICN2BYD
-  - ap_northeast_1_Z2M4EHUR26P7ZW
-  - sa_east_1_Z7KQH4QJS55SO
+  - ap_southeast_2_Z1GM3OXH4ZPM65
+  - ap_northeast_1_Z14GRHDCWA56QT
+  - sa_east_1_Z2P70J7HTTTPLU
 
