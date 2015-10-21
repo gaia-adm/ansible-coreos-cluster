@@ -53,5 +53,13 @@ To invoke Ansible playbook with different configuration (`myenv`) use the follow
 ```
 cp -r group_vars/envs/production group_vars/envs/myenv
 vim group_vars/envs/myenv/*.yaml
-ansible-playbook main.yaml --extra-vars "env=myenv"
+./main.sh myenv mydns
 ```
+
+where mydns is a subdomain name used for accessing the environment over web (http://mydomain.gaiahub.io)
+
+For environment cleanup use the following command:
+```
+./clean.sh myenv mydns
+```
+

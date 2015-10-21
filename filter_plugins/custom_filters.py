@@ -1,3 +1,5 @@
+import os
+
 from jinja2.utils import soft_unicode
 
 def ec2_instance_info(value, return_key):
@@ -24,6 +26,17 @@ def get_dns_zone(value, zone_name):
         if zone['Name'] == zone_name:
             return zone
 
+def get_hosted_zone_id(value):
+    default_region=os.environ['AWS_DEFAULT_REGION']
+    region_value=default_region.replace('-','_')+"_"
+    print region_value
+    for zone in value:
+        print "Next zone: %s" % zone
+        if zone.startswith(region_value):
+            print "Selected: "+zone[len(region_value):]
+            return zone[len(region_value):]
+
+
 class FilterModule(object):
     ''' Ansible core jinja2 filters '''
 
@@ -31,5 +44,6 @@ class FilterModule(object):
         return {
             'ec2_instance_info': ec2_instance_info,
             'get_subnets': get_subnets,
-            'get_dns_zone': get_dns_zone
+            'get_dns_zone': get_dns_zone,
+            'get_hosted_zone_id': get_hosted_zone_id
         }
