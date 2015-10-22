@@ -97,6 +97,12 @@
       - protocol: http
         load_balancer_port: 1936
         instance_port: 1936
+      - protocol: http
+        load_balancer_port: 8083
+        instance_port: 8083
+      - protocol: http
+        load_balancer_port: 8086
+        instance_port: 8086
     health_check:
       ping_protocol: http
       ping_port: 88
