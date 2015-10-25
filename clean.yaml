@@ -67,7 +67,7 @@
     set_fact:
       id: "{{ hz_ids | get_hosted_zone_id() }}"
   - name: get ELB details
-    local_action: command aws elb describe-load-balancers --load-balancer-names coreos-elb-dev --max-items 1
+    local_action: command aws elb describe-load-balancers --load-balancer-names coreos-elb-dev --max-items 1 --output json
     register: elb_fact_out
     ignore_errors: yes
   - name: prepare ELB fact
