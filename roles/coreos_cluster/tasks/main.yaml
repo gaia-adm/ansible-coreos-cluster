@@ -14,6 +14,14 @@
 - set_fact:
     gaia_ca_crt_content: "{{ gaia_ca_crt_content_out.stdout }}"
 
+# get current account id
+- name: get  user details
+  local_action: command aws iam get-user
+  register: myuser
+- set_fact:
+    myuser_out: "{{ myuser.stdout }}"
+- debug: msg="Working on account {{ myuser_out.User.Arn[13:25] }} ..."
+
 - name: check if self-signed certificate for ELB already exists
   local_action: command aws iam get-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }}
   ignore_errors: yes
@@ -88,12 +96,12 @@
         load_balancer_port: 443
         instance_protocol: http
         instance_port: 80
-        ssl_certificate_id: "arn:aws:iam::{{ tenant_id }}:server-certificate/ELB_Certificate.{{ ec2_region }}"
+        ssl_certificate_id: "arn:aws:iam::{{ myuser_out.User.Arn[13:25] }}:server-certificate/ELB_Certificate.{{ ec2_region }}"
       - protocol: https
         load_balancer_port: 444
         instance_protocol: http
         instance_port: 88
-        ssl_certificate_id: "arn:aws:iam::{{ tenant_id }}:server-certificate/ELB_Certificate.{{ ec2_region }}"
+        ssl_certificate_id: "arn:aws:iam::{{ myuser_out.User.Arn[13:25] }}:server-certificate/ELB_Certificate.{{ ec2_region }}"
       - protocol: http
         load_balancer_port: 1936
         instance_port: 1936
