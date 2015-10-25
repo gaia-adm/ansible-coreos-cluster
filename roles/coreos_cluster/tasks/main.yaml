@@ -16,7 +16,7 @@
 
 # get current account id
 - name: get  user details
-  local_action: command aws iam get-user
+  local_action: command aws iam get-user --output json
   register: myuser
 - set_fact:
     myuser_out: "{{ myuser.stdout }}"
