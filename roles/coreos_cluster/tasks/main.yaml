@@ -113,7 +113,7 @@
       healthy_threshold: 5
 
 - name: get ELB details
-  local_action: command aws elb describe-load-balancers --load-balancer-names coreos-elb-dev --max-items 1
+  local_action: command aws elb describe-load-balancers --load-balancer-names coreos-elb-dev --max-items 1 --output json
   register: elb_fact_out
 
 - name: prepare ELB fact
