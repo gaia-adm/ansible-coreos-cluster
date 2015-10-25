@@ -60,7 +60,7 @@
     when: dns_zone == ""
   - name: disassociate VPC from Bastion DNS zone
     local_action: "command aws route53 disassociate-vpc-from-hosted-zone --hosted-zone-id {{ dns_zone.Id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ vpc.vpc_id }} --output json"
-
+    ignore_errors: yes
 
   # delete public subdomain recordset in route53 gaiahub.io hosted zone
   - name: obtain alias hosted zone id
@@ -69,10 +69,12 @@
   - name: get ELB details
     local_action: command aws elb describe-load-balancers --load-balancer-names coreos-elb-dev --max-items 1
     register: elb_fact_out
+    ignore_errors: yes
   - name: prepare ELB fact
     set_fact:
       elb_fact: "{{ elb_fact_out.stdout }}"
-  - name: create route53 subdomain for environment
+  - debug: item="{{elb_fact}}"
+  - name: delete route53 subdomain for environment
     route53:
       command: delete
       zone:  gaiahub.io
@@ -81,7 +83,8 @@
       alias: True
       alias_hosted_zone_id: "{{ id }}"
       value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
-
+    when: elb_fact != ""
+    ignore_errors: yes    
 
   # delete coreos ELB
   - name: delete coreos ELB
@@ -89,6 +92,7 @@
       name: "{{ coreos_elb_name }}"
       state: absent
       region: "{{ ec2_region }}"
+    ignore_errors: yes
 
   # delete ELB self-signed certificate
   - name: delete self-signed certificate for ELB
@@ -107,6 +111,7 @@
       - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
       - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}
+    ignore_errors: yes
 
   - name: delete vpc peering
     ec2_vpc_peering:
@@ -114,6 +119,7 @@
       dest_vpc: "{{ vpc.vpc_id }}"
       region: "{{ ec2_region }}"
       state: absent
+    ignore_errors: yes
 
   - name: delete VPC
     ec2_vpc:
@@ -122,6 +128,7 @@
       resource_tags: "{{ vpc_resource_tags }}"
       vpc_id: "{{ vpc.vpc_id }}"
       state: absent
+    ignore_errors: yes
 
   - name: get bastion vpc route table
     ec2_vpc_route_table_facts:
@@ -134,4 +141,5 @@
   - name: delete route from bastion route tables
     local_action: command aws ec2 delete-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }}
     with_items: "{{ bastion_rts.route_tables }}"
+    when: bastion_rts != "" 
     ignore_errors: true
