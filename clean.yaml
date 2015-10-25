@@ -73,7 +73,6 @@
   - name: prepare ELB fact
     set_fact:
       elb_fact: "{{ elb_fact_out.stdout }}"
-  - debug: item="{{elb_fact}}"
   - name: delete route53 subdomain for environment
     route53:
       command: delete
