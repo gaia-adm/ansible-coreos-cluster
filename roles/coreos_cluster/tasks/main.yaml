@@ -169,3 +169,55 @@
 - name: Turn off "source destination check" - needed for flunnel
   local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ item }} --no-source-dest-check
   with_items: "{{ asg_out.instances }}"
+
+# create volumes for coreos cluster
+
+# create influxdb volume
+- name: Create influxdb volume (non io1)
+  shell: "aws ec2 create-volume --size {{ influxdb_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ influxdb_volume.type }} --output json"
+  register: influxdb_volume_out
+  when: influxdb_volume.type != "io1"
+- set_fact:
+    influxdb_volume_info: "{{ influxdb_volume_out.stdout | from_json }}"
+  when: influxdb_volume.type != "io1"
+
+- name: Create influxdb volume (io1)
+  shell: "aws ec2 create-volume --size {{ influxdb_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ influxdb_volume.type }} --iops {{ influxdb_volume.iops }} --output json"
+  register: influxdb_volume_out
+  when: influxdb_volume.type == "io1"
+- set_fact:
+    influxdb_volume_info: "{{ influxdb_volume_out.stdout | from_json }}"
+  when: influxdb_volume.type == "io1"
+
+- name: Tag influxdb volume
+  ec2_tag:
+    region: "{{ ec2_region }}"
+    resource: "{{ influxdb_volume_info.VolumeId }}"
+    state: present
+    tags:
+      Name: "{{ influxdb_volume.name }}"
+
+# create rabbitmq_master volume
+- name: Create rabbitmq_master volume (non io1)
+  shell: "aws ec2 create-volume --size {{ rabbitmq_master_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ rabbitmq_master_volume.type }} --output json"
+  register: rabbitmq_master_volume_out
+  when: rabbitmq_master_volume.type != "io1"
+- set_fact:
+    rabbitmq_master_volume_info: "{{ rabbitmq_master_volume_out.stdout | from_json }}"
+  when: rabbitmq_master_volume.type != "io1"
+
+- name: Create rabbitmq_master volume (io1)
+  shell: "aws ec2 create-volume --size {{ rabbitmq_master_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ rabbitmq_master_volume.type }} --iops {{ rabbitmq_master_volume.iops }} --output json"
+  register: rabbitmq_master_volume_out
+  when: rabbitmq_master_volume.type == "io1"
+- set_fact:
+    rabbitmq_master_volume_info: "{{ rabbitmq_master_volume_out.stdout | from_json }}"
+  when: rabbitmq_master_volume.type == "io1"
+
+- name: Tag rabbitmq_master volume
+  ec2_tag:
+    region: "{{ ec2_region }}"
+    resource: "{{ rabbitmq_master_volume_info.VolumeId }}"
+    state: present
+    tags:
+      Name: "{{ rabbitmq_master_volume.name }}"
