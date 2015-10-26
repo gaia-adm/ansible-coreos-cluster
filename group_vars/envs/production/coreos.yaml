@@ -11,6 +11,18 @@ coreos_cluster_size: 4
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
 
+influxdb_volume:
+  name: "influxdb-{{ env | default('production') }}"
+  size: 80
+  type: io1
+  iops: 800
+
+rabbitmq_master_volume:
+  name: "rabbitmq-master-{{ env | default('production') }}"
+  size: 20
+  type: io1
+  iops: 400
+
 coreos_block_device_mappings:
   - DeviceName: /dev/xvda
     Ebs:
@@ -101,7 +113,7 @@ coreos_security_group:
       from_port: 80
       to_port: 80
       group_id: "{{ elb_sg.group_id }}"
-   - proto: tcp
+    - proto: tcp
       from_port: 88
       to_port: 88
       group_id: "{{ elb_sg.group_id }}"

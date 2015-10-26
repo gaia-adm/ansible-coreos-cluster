@@ -17,6 +17,42 @@
   - group_vars/envs/{{ env | default("production") }}/nat.yaml
   - group_vars/envs/{{ env | default("production") }}/coreos.yaml
   tasks:
+
+  # delete influxdb volume
+  - name: Find influxdb volume
+    shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ influxdb_volume.name }}' --output json"
+    register: influxdb_volume_out
+  - set_fact:
+      influxdb_volume_info: "{{ influxdb_volume_out.stdout | from_json }}"
+  - fail:
+      msg: "Expected no more than 1 influxdb volumes, found {{ influxdb_volume_info.Volumes | length }}"
+    when: "{{ influxdb_volume_info.Volumes | length }} > 1"
+
+  - name: Delete influxdb volume
+    ec2_vol:
+      id: "{{ influxdb_volume_info.Volumes[0].VolumeId }}"
+      region: "{{ ec2_region }}"
+      state: absent
+    when: "{{ influxdb_volume_info.Volumes | length }} == 1"
+
+  # delete rabbitmq_master volume
+  - name: Find rabbitmq_master volume
+    shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ rabbitmq_master_volume.name }}' --output json"
+    register: rabbitmq_master_volume_out
+  - set_fact:
+      rabbitmq_master_volume_info: "{{ rabbitmq_master_volume_out.stdout | from_json }}"
+  - fail:
+      msg: "Expected no more than 1 rabbitmq_master volumes, found {{ rabbitmq_master_volume_info.Volumes | length }}"
+    when: "{{ rabbitmq_master_volume_info.Volumes | length }} > 1"
+
+  - name: Delete rabbitmq_master volume
+    ec2_vol:
+      id: "{{ rabbitmq_master_volume_info.Volumes[0].VolumeId }}"
+      region: "{{ ec2_region }}"
+      state: absent
+    when: "{{ rabbitmq_master_volume_info.Volumes | length }} == 1"
+
+
   - name: remove autoscale groups for coreos and etcd
     ec2_asg:
       region: "{{ ec2_region }}"
