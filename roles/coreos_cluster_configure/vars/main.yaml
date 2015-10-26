@@ -1,5 +1,0 @@
----
-mount_scripts:
-  - "gaia-get-mount-path.sh"
-  - "gaia_mount.sh"
-  - "gaia_unmount.sh"

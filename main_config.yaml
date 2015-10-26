@@ -8,8 +8,8 @@
   roles:
     - role: defunctzombie.coreos-bootstrap
 
-- name: Configure coreos cluster
-  hosts: coreos_cluster
-  gather_facts: False
-  roles:
-    - role: coreos_cluster_configure
+# add coreos-cluster vpc machines configuration here
+
+# Note that CoreOS machines cannot be configured via ansible due to usage of auto scale groups
+# machines started by amazon wouldn't be configured. But this mechanism can still be used for machines not using
+# auto scale groups.
