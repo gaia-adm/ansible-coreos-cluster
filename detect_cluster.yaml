@@ -9,7 +9,7 @@
   tasks:
     # detect coreos cluser information
     - name: Detect CoreOS cluster info
-      shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ coreos_instance_tags.Name }}' 'Name=tag:group,Values={{ coreos_instance_tags.group }}' 'Name=tag:env,Values={{ coreos_instance_tags.env }}' 'Name=tag:type,Values={{ coreos_instance_tags.type }}'"
+      shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ coreos_instance_tags.Name }}' 'Name=tag:group,Values={{ coreos_instance_tags.group }}' 'Name=tag:env,Values={{ coreos_instance_tags.env }}' 'Name=tag:type,Values={{ coreos_instance_tags.type }}' --output json"
       register: coreos_info_out
     - set_fact:
         coreos_ips: "{{ coreos_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') }}"
