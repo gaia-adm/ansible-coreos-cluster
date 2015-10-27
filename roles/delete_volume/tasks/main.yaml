@@ -6,18 +6,27 @@
   register: volume_out
 - set_fact:
     volume_info: "{{ volume_out.stdout | from_json }}"
-- fail:
+
+- name: "Check we found no more than 1 volume"
+  fail:
     msg: "Expected no more than 1 result_upload volumes, found {{ volume_info.Volumes | length }}"
   when: "{{ volume_info.Volumes | length }} > 1"
 
 - name: "Detach volume (forced)"
   shell: "aws ec2 detach-volume --volume-id {{ volume_info.Volumes[0].VolumeId }} --force"
-  when: "{{ volume_info | is_volume_used }}"
+  when: "{{ volume_info | has_volume_state('in-use') }}"
+
+- name: "Wait until volume is detached"
+  shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ volume.name }}' --output json"
+  register: check_out
+  until: "{{ check_out.stdout | from_json | has_volume_state('available') }}"
+  delay: 10
+  retries: 5
+  when: "{{ volume_info | has_volume_state('in-use') }}"
+
 - name: "Delete volume"
   ec2_vol:
     id: "{{ volume_info.Volumes[0].VolumeId }}"
     region: "{{ ec2_region }}"
     state: absent
   when: "{{ volume_info.Volumes | length }} == 1"
-  retries: 5
-  delay: 10
