@@ -1,6 +1,6 @@
 .env
 .out
 .python
-.pyc
+*.pyc
 keys
 keys/

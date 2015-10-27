@@ -1,9 +1,20 @@
 #!/bin/sh
 export EC2_INI_PATH=inventory/ec2.ini
 
-if [ $# -lt 2 ]; then
-   echo 'Too few attributes: environment type and dns name must be provided'
-   exit 1
-fi
+# read input parameters
+vflag=""
+while [ $# -gt 0 ]
+do
+  case "$1" in
+    -v) vflag="-vvvv";;
+    -d) dns="$2"; shift;;
+    -e) env="$2"; shift;;
+    -h)
+        echo >&2 "usage: $0 -e environment -d dns -v"
+        exit 1;;
+     *) break;; # terminate while loop
+  esac
+  shift
+done
 
-ansible-playbook --extra-vars "env=$1 dns=$2" clean.yaml $3
+ansible-playbook --extra-vars "env=$env dns=$dns" clean.yaml $vflag
