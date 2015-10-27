@@ -1,0 +1,26 @@
+# create result_upload volume
+- debug: msg="Working on volume {{ volume.name }} ..."
+
+- name: "Create volume (non io1)"
+  shell: "aws ec2 create-volume --size {{ volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ volume.type }} --output json"
+  register: volume_out
+  when: volume.type != "io1"
+- set_fact:
+    volume_info: "{{ volume_out.stdout | from_json }}"
+  when: volume.type != "io1"
+
+- name: "Create volume (io1)"
+  shell: "aws ec2 create-volume --size {{ volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ volume.type }} --iops {{ volume.iops }} --output json"
+  register: volume_out
+  when: volume.type == "io1"
+- set_fact:
+    volume_info: "{{ volume_out.stdout | from_json }}"
+  when: volume.type == "io1"
+
+- name: "Tag volume"
+  ec2_tag:
+    region: "{{ ec2_region }}"
+    resource: "{{ volume_info.VolumeId }}"
+    state: present
+    tags:
+      Name: "{{ volume.name }}"

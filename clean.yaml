@@ -16,74 +16,25 @@
   - group_vars/envs/{{ env | default("production") }}/etcd.yaml
   - group_vars/envs/{{ env | default("production") }}/nat.yaml
   - group_vars/envs/{{ env | default("production") }}/coreos.yaml
+  roles:
+    # delete volumes for coreos cluster
+    - role: delete_volume
+      volume: "{{ influxdb_volume }}"
+    - role: delete_volume
+      volume: "{{ rabbitmq_master_volume }}"
+    - role: delete_volume
+      volume: "{{ result_upload_volume }}"
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+  - group_vars/all.yaml
+  - group_vars/envs/{{ env | default("production") }}/vpc.yaml
+  - group_vars/envs/{{ env | default("production") }}/etcd.yaml
+  - group_vars/envs/{{ env | default("production") }}/nat.yaml
+  - group_vars/envs/{{ env | default("production") }}/coreos.yaml
   tasks:
-
-  # delete influxdb volume
-  - name: Find influxdb volume
-    shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ influxdb_volume.name }}' --output json"
-    register: influxdb_volume_out
-  - set_fact:
-      influxdb_volume_info: "{{ influxdb_volume_out.stdout | from_json }}"
-  - fail:
-      msg: "Expected no more than 1 influxdb volumes, found {{ influxdb_volume_info.Volumes | length }}"
-    when: "{{ influxdb_volume_info.Volumes | length }} > 1"
-
-  - name: Detach influxdb volume (forced)
-    shell: "aws ec2 detach-volume --volume-id {{ influxdb_volume_info.Volumes[0].VolumeId }} --force"
-    when: "{{ influxdb_volume_info | is_volume_used }}"
-  - name: Delete influxdb volume
-    ec2_vol:
-      id: "{{ influxdb_volume_info.Volumes[0].VolumeId }}"
-      region: "{{ ec2_region }}"
-      state: absent
-    when: "{{ influxdb_volume_info.Volumes | length }} == 1"
-    retries: 5
-    delay: 10
-
-  # delete rabbitmq_master volume
-  - name: Find rabbitmq_master volume
-    shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ rabbitmq_master_volume.name }}' --output json"
-    register: rabbitmq_master_volume_out
-  - set_fact:
-      rabbitmq_master_volume_info: "{{ rabbitmq_master_volume_out.stdout | from_json }}"
-  - fail:
-      msg: "Expected no more than 1 rabbitmq_master volumes, found {{ rabbitmq_master_volume_info.Volumes | length }}"
-    when: "{{ rabbitmq_master_volume_info.Volumes | length }} > 1"
-
-  - name: Detach rabbitmq_master volume (forced)
-    shell: "aws ec2 detach-volume --volume-id {{ rabbitmq_master_volume_info.Volumes[0].VolumeId }} --force"
-    when: "{{ rabbitmq_master_volume_info | is_volume_used }}"
-  - name: Delete rabbitmq_master volume
-    ec2_vol:
-      id: "{{ rabbitmq_master_volume_info.Volumes[0].VolumeId }}"
-      region: "{{ ec2_region }}"
-      state: absent
-    when: "{{ rabbitmq_master_volume_info.Volumes | length }} == 1"
-    retries: 5
-    delay: 10
-
-  # delete result_upload volume
-  - name: Find result_upload volume
-    shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ result_upload_volume.name }}' --output json"
-    register: result_upload_volume_out
-  - set_fact:
-      result_upload_volume_info: "{{ result_upload_volume_out.stdout | from_json }}"
-  - fail:
-      msg: "Expected no more than 1 result_upload volumes, found {{ result_upload_volume_info.Volumes | length }}"
-    when: "{{ result_upload_volume_info.Volumes | length }} > 1"
-
-  - name: Detach result_upload volume (forced)
-    shell: "aws ec2 detach-volume --volume-id {{ result_upload_volume_info.Volumes[0].VolumeId }} --force"
-    when: "{{ result_upload_volume_info | is_volume_used }}"
-  - name: Delete result_upload volume
-    ec2_vol:
-      id: "{{ result_upload_volume_info.Volumes[0].VolumeId }}"
-      region: "{{ ec2_region }}"
-      state: absent
-    when: "{{ result_upload_volume_info.Volumes | length }} == 1"
-    retries: 5
-    delay: 10
-
   - name: remove autoscale groups for coreos and etcd
     ec2_asg:
       region: "{{ ec2_region }}"

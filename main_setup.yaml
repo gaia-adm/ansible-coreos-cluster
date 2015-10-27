@@ -42,6 +42,14 @@
     # create etcd cluster (with autoscaling group)
     - role: etcd_cluster
 
+    # create volumes for coreos cluster
+    - role: create_volume
+      volume: "{{ influxdb_volume }}"
+    - role: create_volume
+      volume: "{{ rabbitmq_master_volume }}"
+    - role: create_volume
+      volume: "{{ result_upload_volume }}"
+
     # create coreos cluster (with autoscaling group): must run after etcd_cluster role
     - role: coreos_cluster
 

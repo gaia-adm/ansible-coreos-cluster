@@ -1,0 +1,23 @@
+# delete result_upload volume
+- debug: msg="Working on volume {{ volume.name }} ..."
+
+- name: "Find volume"
+  shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ volume.name }}' --output json"
+  register: volume_out
+- set_fact:
+    volume_info: "{{ volume_out.stdout | from_json }}"
+- fail:
+    msg: "Expected no more than 1 result_upload volumes, found {{ volume_info.Volumes | length }}"
+  when: "{{ volume_info.Volumes | length }} > 1"
+
+- name: "Detach volume (forced)"
+  shell: "aws ec2 detach-volume --volume-id {{ volume_info.Volumes[0].VolumeId }} --force"
+  when: "{{ volume_info | is_volume_used }}"
+- name: "Delete volume"
+  ec2_vol:
+    id: "{{ volume_info.Volumes[0].VolumeId }}"
+    region: "{{ ec2_region }}"
+    state: absent
+  when: "{{ volume_info.Volumes | length }} == 1"
+  retries: 5
+  delay: 10
