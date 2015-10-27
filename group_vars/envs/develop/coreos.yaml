@@ -21,6 +21,11 @@ rabbitmq_master_volume:
   size: 20
   type: gp2
 
+result_processing_volume:
+  name: "result-processing-{{ env | default('production') }}"
+  size: 20
+  type: gp2
+
 # size in GB
 coreos_block_device_mappings:
   - DeviceName: /dev/xvda

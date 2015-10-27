@@ -221,3 +221,28 @@
     state: present
     tags:
       Name: "{{ rabbitmq_master_volume.name }}"
+
+# create result_processing volume
+- name: Create result_processing volume (non io1)
+  shell: "aws ec2 create-volume --size {{ result_processing_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ result_processing_volume.type }} --output json"
+  register: result_processing_volume_out
+  when: result_processing_volume.type != "io1"
+- set_fact:
+    result_processing_volume_info: "{{ result_processing_volume_out.stdout | from_json }}"
+  when: result_processing_volume.type != "io1"
+
+- name: Create result_processing volume (io1)
+  shell: "aws ec2 create-volume --size {{ result_processing_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ result_processing_volume.type }} --iops {{ result_processing_volume.iops }} --output json"
+  register: result_processing_volume_out
+  when: result_processing_volume.type == "io1"
+- set_fact:
+    result_processing_volume_info: "{{ result_processing_volume_out.stdout | from_json }}"
+  when: result_processing_volume.type == "io1"
+
+- name: Tag result_processing volume
+  ec2_tag:
+    region: "{{ ec2_region }}"
+    resource: "{{ result_processing_volume_info.VolumeId }}"
+    state: present
+    tags:
+      Name: "{{ result_processing_volume.name }}"

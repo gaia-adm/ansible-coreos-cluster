@@ -1,7 +1,5 @@
 import os
 
-from jinja2.utils import soft_unicode
-
 def ec2_instance_info(value, return_key):
     # collect results from aws ec2 describe-instances result
     results = []
@@ -36,6 +34,8 @@ def get_hosted_zone_id(value):
             print "Selected: "+zone[len(region_value):]
             return zone[len(region_value):]
 
+def is_volume_used(volume_info):
+    return len(volume_info['Volumes']) == 1 and volume_info['Volumes'][0]['State'] == 'in-use'
 
 class FilterModule(object):
     ''' Ansible core jinja2 filters '''
@@ -45,5 +45,6 @@ class FilterModule(object):
             'ec2_instance_info': ec2_instance_info,
             'get_subnets': get_subnets,
             'get_dns_zone': get_dns_zone,
-            'get_hosted_zone_id': get_hosted_zone_id
+            'get_hosted_zone_id': get_hosted_zone_id,
+            'is_volume_used': is_volume_used,
         }
