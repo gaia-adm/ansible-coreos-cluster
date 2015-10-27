@@ -23,8 +23,8 @@ rabbitmq_master_volume:
   type: io1
   iops: 800
 
-result_processing_volume:
-  name: "result-processing-{{ env | default('production') }}"
+result_upload_volume:
+  name: "result-upload-{{ env | default('production') }}"
   size: 20
   type: io1
   iops: 800

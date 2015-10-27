@@ -21,8 +21,8 @@ rabbitmq_master_volume:
   size: 20
   type: gp2
 
-result_processing_volume:
-  name: "result-processing-{{ env | default('production') }}"
+result_upload_volume:
+  name: "result-upload-{{ env | default('production') }}"
   size: 20
   type: gp2
 

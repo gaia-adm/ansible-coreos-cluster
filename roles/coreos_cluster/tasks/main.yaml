@@ -222,27 +222,27 @@
     tags:
       Name: "{{ rabbitmq_master_volume.name }}"
 
-# create result_processing volume
-- name: Create result_processing volume (non io1)
-  shell: "aws ec2 create-volume --size {{ result_processing_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ result_processing_volume.type }} --output json"
-  register: result_processing_volume_out
-  when: result_processing_volume.type != "io1"
+# create result_upload volume
+- name: Create result_upload volume (non io1)
+  shell: "aws ec2 create-volume --size {{ result_upload_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ result_upload_volume.type }} --output json"
+  register: result_upload_volume_out
+  when: result_upload_volume.type != "io1"
 - set_fact:
-    result_processing_volume_info: "{{ result_processing_volume_out.stdout | from_json }}"
-  when: result_processing_volume.type != "io1"
+    result_upload_volume_info: "{{ result_upload_volume_out.stdout | from_json }}"
+  when: result_upload_volume.type != "io1"
 
-- name: Create result_processing volume (io1)
-  shell: "aws ec2 create-volume --size {{ result_processing_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ result_processing_volume.type }} --iops {{ result_processing_volume.iops }} --output json"
-  register: result_processing_volume_out
-  when: result_processing_volume.type == "io1"
+- name: Create result_upload volume (io1)
+  shell: "aws ec2 create-volume --size {{ result_upload_volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ result_upload_volume.type }} --iops {{ result_upload_volume.iops }} --output json"
+  register: result_upload_volume_out
+  when: result_upload_volume.type == "io1"
 - set_fact:
-    result_processing_volume_info: "{{ result_processing_volume_out.stdout | from_json }}"
-  when: result_processing_volume.type == "io1"
+    result_upload_volume_info: "{{ result_upload_volume_out.stdout | from_json }}"
+  when: result_upload_volume.type == "io1"
 
-- name: Tag result_processing volume
+- name: Tag result_upload volume
   ec2_tag:
     region: "{{ ec2_region }}"
-    resource: "{{ result_processing_volume_info.VolumeId }}"
+    resource: "{{ result_upload_volume_info.VolumeId }}"
     state: present
     tags:
-      Name: "{{ result_processing_volume.name }}"
+      Name: "{{ result_upload_volume.name }}"

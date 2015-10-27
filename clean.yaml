@@ -62,25 +62,25 @@
     retries: 5
     delay: 10
 
-  # delete result_processing volume
-  - name: Find result_processing volume
-    shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ result_processing_volume.name }}' --output json"
-    register: result_processing_volume_out
+  # delete result_upload volume
+  - name: Find result_upload volume
+    shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ result_upload_volume.name }}' --output json"
+    register: result_upload_volume_out
   - set_fact:
-      result_processing_volume_info: "{{ result_processing_volume_out.stdout | from_json }}"
+      result_upload_volume_info: "{{ result_upload_volume_out.stdout | from_json }}"
   - fail:
-      msg: "Expected no more than 1 result_processing volumes, found {{ result_processing_volume_info.Volumes | length }}"
-    when: "{{ result_processing_volume_info.Volumes | length }} > 1"
+      msg: "Expected no more than 1 result_upload volumes, found {{ result_upload_volume_info.Volumes | length }}"
+    when: "{{ result_upload_volume_info.Volumes | length }} > 1"
 
-  - name: Detach result_processing volume (forced)
-    shell: "aws ec2 detach-volume --volume-id {{ result_processing_volume_info.Volumes[0].VolumeId }} --force"
-    when: "{{ result_processing_volume_info | is_volume_used }}"
-  - name: Delete result_processing volume
+  - name: Detach result_upload volume (forced)
+    shell: "aws ec2 detach-volume --volume-id {{ result_upload_volume_info.Volumes[0].VolumeId }} --force"
+    when: "{{ result_upload_volume_info | is_volume_used }}"
+  - name: Delete result_upload volume
     ec2_vol:
-      id: "{{ result_processing_volume_info.Volumes[0].VolumeId }}"
+      id: "{{ result_upload_volume_info.Volumes[0].VolumeId }}"
       region: "{{ ec2_region }}"
       state: absent
-    when: "{{ result_processing_volume_info.Volumes | length }} == 1"
+    when: "{{ result_upload_volume_info.Volumes | length }} == 1"
     retries: 5
     delay: 10
 
