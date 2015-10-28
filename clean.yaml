@@ -110,12 +110,15 @@
       state: absent
       region: "{{ ec2_region }}"
     ignore_errors: yes
-
+    register: delElbRes
+    until: delElbRes.elb.status == "gone"
+    retries: 5
+    delay: 10
   - name: check if ELB deletion is not completed yet
-    local_action: command aws elb describe-load-balancers --load-balancer-names coreos-elb-dev --max-items 1 --output json
-    register: checkElb
+    local_action: command aws elb describe-load-balancers --load-balancer-names {{ coreos_elb_name }} --max-items 1 --output json
+    register: checkElbDeletion
     ignore_errors: yes
-    until: checkElb.stdout == ""
+    until: checkElbDeletion.rc != 0
     retries: 5
     delay: 10
 
@@ -124,6 +127,7 @@
     local_action: command aws iam delete-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }}
     ignore_errors: yes
 
+  # delete security groups
   - name: delete all vpc security groups
     ec2_group:
       region: "{{ ec2_region }}"
@@ -137,8 +141,11 @@
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
       - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}
     ignore_errors: yes
+    register: deletedSG
+    until: deletedSG|success
     retries: 5
     delay: 10
+
 
   - name: delete vpc peering
     ec2_vpc_peering:
