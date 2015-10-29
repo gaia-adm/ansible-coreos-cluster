@@ -17,7 +17,7 @@
   - group_vars/envs/{{ env | default("production") }}/etcd.yaml
   - group_vars/envs/{{ env | default("production") }}/nat.yaml
   - group_vars/envs/{{ env | default("production") }}/coreos.yaml
-  - keys/aws_credentials.yaml
+  - keys/credentials.yaml
 
   roles:
     # generate etcd key pair
