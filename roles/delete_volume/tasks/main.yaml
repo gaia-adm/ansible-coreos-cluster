@@ -18,11 +18,11 @@
 
 - name: "Wait until volume is detached"
   shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ volume.name }}' --output json"
-  register: check_out
-  until: "{{ check_out.stdout | from_json | has_volume_state('available') }}"
+  when: "{{ volume_info | has_volume_state('in-use') }}"
+  register: volume_out
+  until: "{{ volume_out.stdout | from_json | has_volume_state('available') }}"
   delay: 10
   retries: 5
-  when: "{{ volume_info | has_volume_state('in-use') }}"
 
 - name: "Delete volume"
   ec2_vol:
