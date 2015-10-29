@@ -36,6 +36,10 @@ nat_security_group:
       to_port: 123
       group_name: "{{ coreos_security_group.name }}"
     - proto: tcp
+      from_port: 20000
+      to_port: 20000
+      cidr_ip: "{{ vpc_cidr_block }}"
+    - proto: tcp
       from_port: 22
       to_port: 22
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
