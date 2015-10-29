@@ -34,6 +34,8 @@ coreos_block_device_mappings:
       VolumeType: "gp2"
       DeleteOnTermination: true
 
+coreos_log_key: "{{ coreos_log_key_develop }}"
+
 coreos_flannel_cidr_block: 192.168.0.0/16
 
 # note: for flannel use manually create role with required pilicies
