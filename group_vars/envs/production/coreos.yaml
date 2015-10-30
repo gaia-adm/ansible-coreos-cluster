@@ -137,6 +137,10 @@ coreos_security_group:
       from_port: 8086
       to_port: 8086
       group_id: "{{ elb_sg.group_id }}"
+    - proto: tcp
+      from_port: 8050
+      to_port: 8050
+      group_id: "{{ bastion_vpc_cidr_block }}"
 
 # https server certificate
 gaia_ca_file: "ca.{{ vpc_dns_zone }}"
