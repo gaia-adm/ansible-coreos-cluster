@@ -18,6 +18,8 @@
   - group_vars/envs/{{ env | default("production") }}/coreos.yaml
   roles:
     # delete volumes for coreos cluster
+	- role: delete_volume
+      volume: "{{ grafana_volume }}"
     - role: delete_volume
       volume: "{{ influxdb_volume }}"
     - role: delete_volume

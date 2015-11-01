@@ -11,6 +11,11 @@ coreos_cluster_size: 4
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
 
+grafana_volume:
+  name: "grafana-{{ env | default('production') }}"
+  size: 5
+  type: gp2
+
 influxdb_volume:
   name: "influxdb-{{ env | default('production') }}"
   size: 80
