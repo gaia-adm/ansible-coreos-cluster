@@ -14,27 +14,23 @@ coreos_health_check_period: 60
 grafana_volume:
   name: "grafana-{{ env | default('production') }}"
   size: 5
-  type: io1
-  iops: 800
+  type: gp2
   
 influxdb_volume:
   name: "influxdb-{{ env | default('production') }}"
   size: 80
-  type: io1
-  iops: 800
+  type: gp2
 
 rabbitmq_master_volume:
   name: "rabbitmq-master-{{ env | default('production') }}"
   size: 20
-  type: io1
-  iops: 800
+  type: gp2
 
 result_upload_volume:
   name: "result-upload-{{ env | default('production') }}"
   size: 20
-  type: io1
-  iops: 800
-
+  type: gp2
+  
 coreos_block_device_mappings:
   - DeviceName: /dev/xvda
     Ebs:

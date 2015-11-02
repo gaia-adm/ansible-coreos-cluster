@@ -14,22 +14,22 @@ coreos_health_check_period: 60
 grafana_volume:
   name: "grafana-{{ env | default('production') }}"
   size: 5
-  type: gp2
+  type: standard
 
 influxdb_volume:
   name: "influxdb-{{ env | default('production') }}"
-  size: 80
-  type: gp2
+  size: 40
+  type: standard
 
 rabbitmq_master_volume:
   name: "rabbitmq-master-{{ env | default('production') }}"
   size: 20
-  type: gp2
+  type: standard
 
 result_upload_volume:
   name: "result-upload-{{ env | default('production') }}"
   size: 20
-  type: gp2
+  type: standard
 
 # size in GB
 coreos_block_device_mappings:
