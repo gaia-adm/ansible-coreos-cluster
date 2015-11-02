@@ -43,7 +43,7 @@
     - role: etcd_cluster
 
     # create volumes for coreos cluster
-	- role: create_volume
+    - role: create_volume
       volume: "{{ grafana_volume }}"
     - role: create_volume
       volume: "{{ influxdb_volume }}"
