@@ -1,0 +1,26 @@
+# generate CA https certificate for skydns.local
+- name: Create keys/region directory
+  file: path=keys/ state=directory mode=0700
+
+- name: create skydns.local CA key
+  shell: "openssl genrsa -out keys/skydns_local.key 2048"
+  args:
+    creates: "keys/skydns_local.key"
+- name: create skydns.local CA csr
+  shell: "openssl req -sha256 -new -subj {{ skydns_ca_subj }} -key keys/skydns_local.key -out keys/skydns_local.csr"
+  args:
+    creates: "keys/skydns_local.csr"
+- name: create skydns.local CA crt
+  shell: "openssl x509 -days 3650 -signkey keys/skydns_local.key -in keys/skydns_local.csr -req -out keys/skydns_local.crt"
+  args:
+    creates: "keys/skydns_local.crt"
+
+# the skydns CA needs to be supplied to cluster via cloud-config due to usage of auto-scale groups. For static cluster
+# it could be in ansible-deployment.
+# set facts with file content for cloud-config
+- set_fact:
+    skydns_ca_crt_file: "keys/skydns_local.crt"
+- shell: "openssl enc -base64 -A -in {{ skydns_ca_crt_file }}"
+  register: skydns_ca_crt_content_out
+- set_fact:
+    skydns_ca_crt_content: "{{ skydns_ca_crt_content_out.stdout }}"

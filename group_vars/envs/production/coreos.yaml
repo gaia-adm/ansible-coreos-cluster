@@ -116,6 +116,10 @@ coreos_security_group:
       to_port: 7001
       group_name: coreos_sg_prod
     - proto: tcp
+      from_port: 8200
+      to_port: 8200
+      group_name: coreos_sg_prod
+    - proto: tcp
       from_port: 22
       to_port: 22
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
@@ -146,3 +150,5 @@ coreos_security_group:
 
 # https server certificate
 gaia_ca_file: "ca.{{ vpc_dns_zone }}"
+
+skydns_ca_subj: "/C=/ST=/L=/O=/CN=skydns.local"

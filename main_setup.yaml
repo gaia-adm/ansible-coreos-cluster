@@ -36,6 +36,9 @@
       keypair_name: "{{ coreos_keypair_name }}"
       keypair_file: "{{ coreos_keypair_file }}"
 
+    # generate CA https certificate for skydns.local, it must be included in CoreOS
+    - role: https_certs
+
     # create a new VPC
     - role: vpc
 
