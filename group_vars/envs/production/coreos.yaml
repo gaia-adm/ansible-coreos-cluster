@@ -100,20 +100,8 @@ coreos_security_group:
   desc: the security group for CoreOS cluster
   rules:
     - proto: tcp
-      from_port: 2379
-      to_port: 2379
-      group_name: coreos_sg_prod
-    - proto: tcp
-      from_port: 2380
-      to_port: 2380
-      group_name: coreos_sg_prod
-    - proto: tcp
-      from_port: 4001
-      to_port: 4001
-      group_name: coreos_sg_prod
-    - proto: tcp
-      from_port: 7001
-      to_port: 7001
+      from_port: 0
+      to_port: 65535
       group_name: coreos_sg_prod
     - proto: tcp
       from_port: 8200
