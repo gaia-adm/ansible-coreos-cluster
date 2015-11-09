@@ -1,6 +1,7 @@
 - debug: var=vpc_id
 
 # set facts with file content for cloud-config
+# gaia CA crt content
 - set_fact:
     gaia_ca_crt_file: "keys/{{ ec2_region }}/{{ gaia_ca_file }}.crt"
 - stat:
@@ -13,6 +14,19 @@
   register: gaia_ca_crt_content_out
 - set_fact:
     gaia_ca_crt_content: "{{ gaia_ca_crt_content_out.stdout }}"
+# gaia CA private key content
+- set_fact:
+    gaia_ca_key_file: "keys/{{ ec2_region }}/{{ gaia_ca_file }}.key"
+- stat:
+    path: "{{ gaia_ca_key_file }}"
+  register: st_out
+- fail:
+    msg: "Missing {{ gaia_ca_key_file }} file. Please copy this file from ansible-bastion or make the keys directory a symlink"
+  when: st_out.stat.exists != True
+- shell: "base64 -w0 {{ gaia_ca_key_file }}"
+  register: gaia_ca_key_content_out
+- set_fact:
+    gaia_ca_key_content: "{{ gaia_ca_key_content_out.stdout }}"
 
 # get current account id
 - name: get  user details

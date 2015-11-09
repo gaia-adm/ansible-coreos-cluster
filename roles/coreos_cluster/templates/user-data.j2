@@ -21,18 +21,23 @@ write-files:
     owner: root:root
     content: |
       DOCKER_OPTS="--registry-mirror=https://docker-registry.{{ vpc_dns_zone }}:5443 --log-driver=none --log-level=warn"
-  # CA for accessing services via route53 through SSL. Domain name is dynamic, i.e "gaia-dev.us-west-1.priv"
+  # CA for accessing services via route53 and skydns through SSL. Domain name is dynamic, i.e "gaia-dev.us-west-1.priv"
   - path: /etc/ssl/certs/gaia-ca.pem
     permissions: 0644
     owner: root:root
     encoding: base64
     content: "{{ gaia_ca_crt_content }}"
-  # skydns.local CA for accessing services via skydns through SSL inside Docker containers
-  - path: /etc/ssl/certs/skydns-local-ca.pem
-    permissions: 0644
+  # put the gaia CA private key+crt into different directory than /etc/ssl to protect it from Docker containers since /etc/ssl may be shared
+  - path: /etc/ssl-priv/gaia-ca.crt
+    permissions: 0600
     owner: root:root
     encoding: base64
-    content: "{{ skydns_ca_crt_content }}"
+    content: "{{ gaia_ca_crt_content }}"
+  - path: /etc/ssl-priv/gaia-ca.key
+    permissions: 0600
+    owner: root:root
+    encoding: base64
+    content: "{{ gaia_ca_key_content }}"
 
 coreos:
   etcd2:
