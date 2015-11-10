@@ -28,12 +28,12 @@ write-files:
     encoding: base64
     content: "{{ gaia_ca_crt_content }}"
   # put the gaia CA private key+crt into different directory than /etc/ssl to protect it from Docker containers since /etc/ssl may be shared
-  - path: /etc/ssl-priv/gaia-ca.crt
+  - path: /etc/gaia/gaia-ca.crt
     permissions: 0600
     owner: root:root
     encoding: base64
     content: "{{ gaia_ca_crt_content }}"
-  - path: /etc/ssl-priv/gaia-ca.key
+  - path: /etc/gaia/gaia-ca.key
     permissions: 0600
     owner: root:root
     encoding: base64
