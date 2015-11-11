@@ -1,0 +1,11 @@
+# generate gaia GPG keyrings
+- name: Create keys/region directory
+  file: path=keys/ state=directory mode=0700
+
+- set_fact:
+    work_dir: "{{ lookup('env', 'PWD') }}"
+
+- name: create gaia GPG keyrings
+  shell: "gpg2 --batch --armor --gen-key {{ work_dir }}/roles/gpg_keyrings/files/gaia_gpg.batch"
+  args:
+    creates: "keys/gaia-secring.gpg"

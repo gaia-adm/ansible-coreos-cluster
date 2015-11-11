@@ -21,12 +21,6 @@ write-files:
     owner: root:root
     content: |
       DOCKER_OPTS="--registry-mirror=https://docker-registry.{{ vpc_dns_zone }}:5443 --log-driver=none --log-level=warn"
-  # CA for accessing services via route53 and skydns through SSL. Domain name is dynamic, i.e "gaia-dev.us-west-1.priv"
-  - path: /etc/ssl/certs/gaia-ca.pem
-    permissions: 0644
-    owner: root:root
-    encoding: base64
-    content: "{{ gaia_ca_crt_content }}"
   # put the gaia CA private key+crt into different directory than /etc/ssl to protect it from Docker containers since /etc/ssl may be shared
   - path: /etc/gaia/gaia-ca.crt
     permissions: 0600
@@ -38,7 +32,17 @@ write-files:
     owner: root:root
     encoding: base64
     content: "{{ gaia_ca_key_content }}"
-
+   # put GPG keyrings on coreos
+  - path: /etc/gaia/gaia-pubring.gpg
+    permissions: 0600
+    owner: root:root
+    encoding: base64
+    content: "{{ gaia_pubring_content }}"
+  - path: /etc/gaia/gaia-secring.gpg
+    permissions: 0600
+    owner: root:root
+    encoding: base64
+    content: "{{ gaia_secring_content }}"
 coreos:
   etcd2:
     # use same discovery url as for etcd cluster; configure etcd to the "proxy" mode
@@ -81,6 +85,7 @@ coreos:
       Description=Update root CAs
       Before=docker.service
       [Service]
+      ExecStartPre=/bin/install -C -D -m644 -o root -g root /etc/gaia/gaia-ca.crt /etc/ssl/certs/gaia-ca.pem
       ExecStart=/usr/sbin/update-ca-certificates
       Type=oneshot
   - name: flanneld.service
