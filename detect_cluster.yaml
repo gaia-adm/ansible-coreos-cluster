@@ -4,8 +4,7 @@
   connection: local
   gather_facts: False
   vars_files:
-    - group_vars/all.yaml
-    - group_vars/envs/{{ env | default("production") }}/ssh_config.yaml
+    - group_vars/ssh_config.yaml
   tasks:
     # detect coreos cluser information
     - name: Detect CoreOS cluster info
@@ -22,6 +21,7 @@
       add_host: >
         hostname="{{item}}"
         groupname=coreos_cluster
+        ansible_ssh_user=core
         ansible_python_interpreter="PATH=/home/core/bin:$PATH python"
       with_items: "{{ coreos_ips }}"
     # for execution of fleetctl commands we need any running coreos instance. We create group of just one IP that is used as cluster manager.
@@ -29,4 +29,5 @@
       add_host: >
         hostname="{{coreos_manager_ip}}"
         groupname=coreos_cluster_manager
+        ansible_ssh_user=core
         ansible_python_interpreter="PATH=/home/core/bin:$PATH python"

@@ -17,7 +17,7 @@ Host {{ bastion_nat_ips }}
     ControlMaster auto
     ControlPath ~/.ssh/mux-%r@%h:%p
     ControlPersist 10m
-    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ bastion_nat_keypair_file }}
 # docker-registry cluster
 Host {{ docker_registry_ips }}
@@ -29,7 +29,7 @@ Host {{ docker_registry_ips }}
     ControlMaster auto
     ControlPath ~/.ssh/mux-%r@%h:%p
     ControlPersist 10m
-    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ docker_registry_keypair_file }}
 # coreos cluster
 Host {{ coreos_ips }}
@@ -41,7 +41,7 @@ Host {{ coreos_ips }}
     ControlMaster auto
     ControlPath ~/.ssh/mux-%r@%h:%p
     ControlPersist 10m
-    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ coreos_keypair_file }}
 # etcd cluster
 Host {{ etcd_ips }}
@@ -53,7 +53,7 @@ Host {{ etcd_ips }}
     ControlMaster auto
     ControlPath ~/.ssh/mux-%r@%h:%p
     ControlPersist 10m
-    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ etcd_keypair_file }}
 # NAT
 Host {{ nat_ips }}
@@ -65,5 +65,5 @@ Host {{ nat_ips }}
     ControlMaster auto
     ControlPath ~/.ssh/mux-%r@%h:%p
     ControlPersist 10m
-    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    ProxyCommand ssh -q -A -t -F {{ work_dir }}/keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile {{ work_dir }}/keys/{{ ec2_region }}/{{ nat_keypair_file }}

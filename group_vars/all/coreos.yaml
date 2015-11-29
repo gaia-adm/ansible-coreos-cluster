@@ -1,0 +1,5 @@
+# Visit https://coreos.com/releases/ for CoreOS releases details
+# coreos_channel: beta
+# coreos_version: 835.5.0
+coreos_channel: alpha
+coreos_version: 870.3.0

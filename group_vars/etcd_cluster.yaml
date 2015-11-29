@@ -1,31 +1,23 @@
 # etcd - common instance parameters
-etcd_keypair_name: etcd-keypair-dev
-etcd_keypair_file: etcd-key-dev.pem
-etcd_channel: stable
+etcd_keypair_name: "etcd-keypair-{{ env_nick[environ] }}"
+etcd_keypair_file: "etcd-key-{{ env_nick[environ] }}.pem"
 etcd_cluster_size: 3
 etcd_max_cluster_size: 9
 etcd_health_check_period: 60
-etcd_asg_name: etcd-asg-dev
-etcd_lc_name: etcd-lc-dev
+etcd_asg_name: "etcd-asg-{{ env_nick[environ] }}"
+etcd_lc_name: "etcd-lc-{{ env_nick[environ] }}"
 
-etcd_instance_type: r3.large      # Memory optimized 15GB RAM
-
-etcd_block_device_mappings:
-  - DeviceName: /dev/xvda
-    Ebs:
-      VolumeSize: 10
-      VolumeType: "gp2"
-      DeleteOnTermination: true
+etcd_instance_type: "{{ instance_type.etcd[environ] }}"
 
 etcd_instance_tags:
   - Name: etcd
     group: gaia
     type: cluster_node
-    env: develop
+    env: "{{ environ }}"
     decription: etcd HA Cluster Node
 
 etcd_security_group:
-  name: etcd_sg_dev
+  name: "etcd_sg_{{ env_nick[environ] }}"
   desc: the security group for etcd cluster
   rules:
     - proto: tcp

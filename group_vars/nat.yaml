@@ -1,14 +1,14 @@
 # nat - parameters
-nat_keypair_name: nat-keypair-dev
-nat_keypair_file: nat-key-dev.pem
+nat_keypair_name: "nat-keypair-{{ env_nick[environ] }}"
+nat_keypair_file: "nat-key-{{ env_nick[environ] }}.pem"
 nat_instance_type: "t2.small"
-nat_instance_tags: { "Name": "NAT", "env": "develop", "group": "gaia" }
+nat_instance_tags: { "Name": "NAT", "env": "{{ environ }}", "group": "gaia" }
 
 # size in GB
 nat_volume_size: 10
 
 nat_security_group:
-  name: nat_sg_dev
+  name: "nat_sg_{{ env_nick[environ] }}"
   desc: the NAT security group
   rules:
     - proto: tcp

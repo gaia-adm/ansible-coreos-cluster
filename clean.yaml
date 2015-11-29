@@ -1,9 +1,7 @@
 ---
 - name: Find NAT instances and terminate them
-  hosts: tag_Name_NAT:&tag_env_{{ env | default("production") }}
+  hosts: tag_Name_NAT:&tag_env_{{ environ | default("develop") }}:&{{ lookup('env', 'AWS_DEFAULT_REGION') }}
   gather_facts: False
-  vars_files:
-  - group_vars/all.yaml
   roles:
     - terminate
 
@@ -11,11 +9,10 @@
   connection: local
   gather_facts: False
   vars_files:
-  - group_vars/all.yaml
-  - group_vars/envs/{{ env | default("production") }}/vpc.yaml
-  - group_vars/envs/{{ env | default("production") }}/etcd.yaml
-  - group_vars/envs/{{ env | default("production") }}/nat.yaml
-  - group_vars/envs/{{ env | default("production") }}/coreos.yaml
+  - group_vars/vpc.yaml
+  - group_vars/etcd_cluster.yaml
+  - group_vars/nat.yaml
+  - group_vars/coreos_cluster.yaml
   roles:
     # delete volumes for coreos cluster
     - role: delete_volume
@@ -31,11 +28,10 @@
   connection: local
   gather_facts: False
   vars_files:
-  - group_vars/all.yaml
-  - group_vars/envs/{{ env | default("production") }}/vpc.yaml
-  - group_vars/envs/{{ env | default("production") }}/etcd.yaml
-  - group_vars/envs/{{ env | default("production") }}/nat.yaml
-  - group_vars/envs/{{ env | default("production") }}/coreos.yaml
+  - group_vars/vpc.yaml
+  - group_vars/etcd_cluster.yaml
+  - group_vars/nat.yaml
+  - group_vars/coreos_cluster.yaml
   tasks:
   - name: remove autoscale groups for coreos and etcd
     ec2_asg:
@@ -103,7 +99,7 @@
       alias_hosted_zone_id: "{{ id }}"
       value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
     when: elb_fact != ""
-    ignore_errors: yes    
+    ignore_errors: yes
 
   # delete coreos ELB
   - name: delete coreos ELB
@@ -171,11 +167,11 @@
       region: "{{ ec2_region }}"
       filters:
         tag:Name: "{{ bastion_vpc_rt_name }}"
-        tag:env: "{{ env | default('production') }}"
+        tag:env: "{{ environ }}"
     register: bastion_rts
-    
+
   - name: delete route from bastion route tables
     local_action: command aws ec2 delete-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }}
     with_items: "{{ bastion_rts.route_tables }}"
-    when: bastion_rts != "" 
+    when: bastion_rts != ""
     ignore_errors: true

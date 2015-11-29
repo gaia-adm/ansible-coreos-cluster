@@ -1,0 +1,31 @@
+# Helper variables for bastion VPC
+# Note: make sure they are in sync with corresponging Bastion variables for "env"
+bastion_vpc_cidr_block: "{{ bastion_cidr_block[environ] }}"
+bastion_vpc_rt_name: bastion-rt
+
+# VPC variables
+vpc_cidr_block: "{{ cidr_block[environ] }}"
+vpc_internet_gateway: "yes"
+
+vpc_resource_tags: { "Name": "gaia-vpc", "env": "{{ environ }}", "group": "gaia" }
+
+vpc_route_tables_tags: { "Name": "gaia-rt", "env": "{{ environ }}", "group": "gaia" }
+
+vpc_subnets:
+  # public subnets
+  - cidr: "{{ subnet_cidr.public.first[environ] }}"
+    az: "{{ ec2_region_az1 }}"
+    resource_tags: { "Name": "public-1", "env": "{{ environ }}", "group": "gaia", "tier": "public"}
+  - cidr: "{{ subnet_cidr.public.second[environ] }}"
+    az: "{{ ec2_region_az2 }}"
+    resource_tags: { "Name": "public-2", "env": "{{ environ }}", "group": "gaia", "tier": "public"}
+  # private subnets
+  - cidr: "{{ subnet_cidr.private.first[environ] }}"
+    az: "{{ ec2_region_az1 }}"
+    resource_tags: { "Name": "private-1", "env": "{{ environ }}", "group": "gaia", "tier": "private"}
+  - cidr: "{{ subnet_cidr.private.second[environ] }}"
+    az: "{{ ec2_region_az2 }}"
+    resource_tags: { "Name": "private-2", "env": "{{ environ }}", "group": "gaia", "tier": "private"}
+
+# must match Bastion variable
+vpc_dns_zone: "gaia-{{ env_nick[environ] }}.{{ ec2_region }}.priv"

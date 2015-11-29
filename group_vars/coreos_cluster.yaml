@@ -1,45 +1,32 @@
 # coreos - parameters
-coreos_keypair_name: coreos-keypair-dev
-coreos_keypair_file: coreos-key-dev.pem
-
-# choose either: alpha, beta or stable channel
-# (!) currently using "alpha" since flannel 0.5.0 (with AWS backend support) available only on alpha
-coreos_channel: alpha
-coreos_version: 833.0.0
+coreos_keypair_name: "coreos-keypair-{{ env_nick[environ] }}"
+coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
 
 coreos_cluster_size: 4
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
 
 grafana_volume:
-  name: "grafana-{{ env | default('production') }}"
+  name: "grafana-{{ environ }}"
   size: 5
   type: gp2
 
 influxdb_volume:
-  name: "influxdb-{{ env | default('production') }}"
-  size: 40
+  name: "influxdb-{{ environ }}"
+  size: 80
   type: gp2
 
 rabbitmq_master_volume:
-  name: "rabbitmq-master-{{ env | default('production') }}"
+  name: "rabbitmq-master-{{ environ }}"
   size: 20
   type: gp2
 
 result_upload_volume:
-  name: "result-upload-{{ env | default('production') }}"
+  name: "result-upload-{{ environ }}"
   size: 20
   type: gp2
 
-# size in GB
-coreos_block_device_mappings:
-  - DeviceName: /dev/xvda
-    Ebs:
-      VolumeSize: 40
-      VolumeType: "gp2"
-      DeleteOnTermination: true
-
-coreos_log_key: "{{ coreos_log_key_develop }}"
+coreos_log_key: "{{ coreos_log_key_env[environ] }}"
 
 coreos_flannel_cidr_block: 192.168.0.0/16
 
@@ -48,23 +35,23 @@ coreos_flannel_cidr_block: 192.168.0.0/16
 #       https://coreos.com/blog/introducing-flannel-0.5.0-with-aws-and-gce/
 coreos_instance_profile: flannel-role
 
-coreos_asg_name: coreos-asg-dev
+coreos_asg_name: "coreos-asg-{{ env_nick[environ] }}"
 
-coreos_lc_name: coreos-lc-dev
+coreos_lc_name: "coreos-lc-{{ env_nick[environ] }}"
 
-coreos_elb_name: coreos-elb-dev
+coreos_elb_name: "coreos-elb-{{ env_nick[environ] }}"
 
-coreos_instance_type: m3.xlarge     # 4 vCPU, 15GB RAM, 2x40 SSD
+coreos_instance_type: "{{ instance_type.coreos[environ] }}"
 
 coreos_instance_tags:
   - Name: coreos
     group: gaia
     type: cluster_node
-    env: develop
+    env: "{{ environ }}"
     decription: CoreOS HA Cluster Node
 
 elb_security_group:
-  name: elb_sg_dev
+  name: "elb_sg_{{ env_nick[environ] }}"
   desc: the security group for ELB
   rules:
     - proto: tcp
@@ -96,15 +83,14 @@ elb_security_group:
       to_port: 8086
       cidr_ip: 0.0.0.0/0
 
-
 coreos_security_group:
-  name: coreos_sg_dev
+  name: "coreos_sg_{{ env_nick[environ] }}"
   desc: the security group for CoreOS cluster
   rules:
     - proto: tcp
       from_port: 0
       to_port: 65535
-      group_name: coreos_sg_dev
+      group_name: "coreos_sg_{{ env_nick[environ] }}"
     - proto: tcp
       from_port: 22
       to_port: 22
@@ -133,7 +119,6 @@ coreos_security_group:
       from_port: 8050
       to_port: 8050
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
-
 
 # https server certificate
 gaia_ca_file: "ca.{{ vpc_dns_zone }}"

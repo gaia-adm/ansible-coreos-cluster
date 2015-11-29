@@ -45,21 +45,20 @@ Region needs to be set also in inventory/ec2.ini file
 
 We use additional Ansible AWS modules `ec2_ami_find, ec2_vpc, ec2_vpc_peering*, ec2_vpc_route_table_facts` from Ansible 2.0, that are not available in Ansible 1.9x.
 
-# create a new environment
+# select/create environment
 
-The environment consists from dedicated VPC with several public and private subnets in different AWS availability zones. To configure number of subnets and cluster size, edit `group_vars/envs/production/*.yaml` files or create an additional configuration files, based on above files, with different values.
-To invoke Ansible playbook with different configuration (`myenv`) use the following commands:
+The **Gaia** environment consists from dedicated VPC with several public subnets in different AWS availability zones. To configure number of subnets and Bastion cluster size, edit `group_vars/all/env.yaml` file. By default two environments are defined: **production** and **develop** (default).
+To invoke Ansible playbook with different environment use the following commands:
 
 ```
-cp -r group_vars/envs/production group_vars/envs/myenv
-vim group_vars/envs/myenv/*.yaml
-./main.sh myenv mydns
+./main.sh -e production|develop|custom -d mydns
 ```
 
-where mydns is a subdomain name used for accessing the environment over web (http://mydomain.gaiahub.io)
+where `mydns` is a subdomain name used for accessing the environment over web (http://mydomain.gaiahub.io)
+
+# cleanup environment
 
 For environment cleanup use the following command:
 ```
-./clean.sh myenv mydns
+./clean.sh -e production|develop|custom -d mydns
 ```
-

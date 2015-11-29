@@ -72,7 +72,7 @@ coreos:
       ExecStartPre=/usr/bin/systemctl set-environment AWS_ACCESS_KEY={{ coreos_aws_access_key }}
       ExecStartPre=/usr/bin/systemctl set-environment AWS_SECRET_KEY={{ coreos_aws_secret_key }}
       ExecStartPre=/usr/bin/systemctl set-environment ENVIRON_LOCATION=amazon
-      ExecStart=/usr/bin/systemctl set-environment ENVIRON={{ env | default("production") }}
+      ExecStart=/usr/bin/systemctl set-environment ENVIRON={{ environ | default("develop") }}
       [Install]
       WantedBy=multi-user.target
   # start the service manually to perform coreos update

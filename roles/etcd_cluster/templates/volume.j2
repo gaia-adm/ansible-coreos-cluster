@@ -1,0 +1,10 @@
+[
+  {
+    "DeviceName": "/dev/xvda",
+    "Ebs": {
+      "DeleteOnTermination": true,
+      "VolumeType": "gp2",
+      "VolumeSize": {{ volume_size.etcd[environ] | int }}
+    }
+  }
+]

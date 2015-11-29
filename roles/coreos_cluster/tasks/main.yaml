@@ -10,7 +10,7 @@
 - fail:
     msg: "Missing {{ gaia_ca_crt_file }} file. Please copy this file from ansible-bastion or make the keys directory a symlink"
   when: st_out.stat.exists != True
-- shell: "base64 -w0 {{ gaia_ca_crt_file }}"
+- shell: "openssl enc -base64 -A -in {{ gaia_ca_crt_file }}"
   register: gaia_ca_crt_content_out
 - set_fact:
     gaia_ca_crt_content: "{{ gaia_ca_crt_content_out.stdout }}"
@@ -23,7 +23,7 @@
 - fail:
     msg: "Missing {{ gaia_ca_key_file }} file. Please copy this file from ansible-bastion or make the keys directory a symlink"
   when: st_out.stat.exists != True
-- shell: "base64 -w0 {{ gaia_ca_key_file }}"
+- shell: "openssl enc -base64 -A -in {{ gaia_ca_key_file }}"
   register: gaia_ca_key_content_out
 - set_fact:
     gaia_ca_key_content: "{{ gaia_ca_key_content_out.stdout }}"
@@ -37,7 +37,7 @@
 - fail:
     msg: "Missing {{ gaia_pubring_file }} file"
   when: st_out.stat.exists != True
-- shell: "base64 -w0 {{ gaia_pubring_file }}"
+- shell: "openssl enc -base64 -A -in {{ gaia_pubring_file }}"
   register: gaia_pubring_content_out
 - set_fact:
     gaia_pubring_content: "{{ gaia_pubring_content_out.stdout }}"
@@ -51,7 +51,7 @@
 - fail:
     msg: "Missing {{ gaia_secring_file }} file"
   when: st_out.stat.exists != True
-- shell: "base64 -w0 {{ gaia_secring_file }}"
+- shell: "openssl enc -base64 -A -in {{ gaia_secring_file }}"
   register: gaia_secring_content_out
 - set_fact:
     gaia_secring_content: "{{ gaia_secring_content_out.stdout }}"
@@ -168,7 +168,7 @@
 
 - name: prepare ELB fact
   set_fact:
-    elb_fact: "{{ elb_fact_out.stdout }}" 
+    elb_fact: "{{ elb_fact_out.stdout }}"
 
 - name: obtain alias hosted zone id
   set_fact:
@@ -181,15 +181,19 @@
     record: "{{ dns }}.gaiahub.io"
     type: A
     alias: True
+    overwrite: True
     alias_hosted_zone_id: "{{ id }}"
     value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
 
+# using JSON file as a workaround for Ansible bug: https://github.com/ansible/ansible/issues/9362
+- name: create coreos volume json template
+  template: src='volume.j2' dest='/tmp/coreos_volume.json'
 
 # create CoreOS launch configuration
 # note: for flannel use manually create role with required pilicies
 #       https://coreos.com/flannel/docs/latest/vpc-backend.html
 - name: create CoreOS launch configuration
-  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ coreos_lc_name }}' --key-name '{{ coreos_keypair_name }}' --image-id '{{ coreos_ami.ami_id }}' --security-groups '{{ coreos_sg.group_id }}' --instance-type '{{ coreos_instance_type }}' --iam-instance-profile '{{ coreos_instance_profile }}' --user-data 'file:///tmp/user-data.txt' --block-device-mappings '{{ coreos_block_device_mappings | to_json }}'"
+  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ coreos_lc_name }}' --key-name '{{ coreos_keypair_name }}' --image-id '{{ coreos_ami.ami_id }}' --security-groups '{{ coreos_sg.group_id }}' --instance-type '{{ coreos_instance_type }}' --iam-instance-profile '{{ coreos_instance_profile }}' --user-data 'file:///tmp/user-data.txt' --block-device-mappings 'file:///tmp/coreos_volume.json'"
 
 # create CoreOS autoscale group
 - name: create CoreOS autoscale group

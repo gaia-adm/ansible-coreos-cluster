@@ -14,7 +14,7 @@
 - name: search for the latest NAT AMI image
   ec2_ami_find:
     region: "{{ ec2_region }}"
-    name: "amzn-ami-vpc-nat-hvm-*"
+    name: "amzn-ami-vpc-nat-hvm-2015.03.0.x86_64-gp2*"
     sort: name
     sort_order: descending
     sort_end: 1
@@ -83,7 +83,7 @@
     region: "{{ ec2_region }}"
     filters:
       tag:Name: "{{ bastion_vpc_rt_name }}"
-      tag:env: "{{ env | default('production') }}"
+      tag:env: "{{ environ }}"
   register: bastion_rts
 
 - name: update bastion route tables

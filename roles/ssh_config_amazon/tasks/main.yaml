@@ -49,4 +49,8 @@
 
 # generate ssh_config from template
 - name: generate ssh_config
-  template: src='ssh_config.j2' dest='{{ work_dir }}/keys/{{ ssh_config_file }}'
+  template: src='ssh_config.j2' dest='{{ work_dir }}/keys/{{ ec2_region }}/{{ ssh_config_file }}'
+
+# generate symlink to ssh_config and place it into project folder (this symlink is in .gitignore)
+- name: Create symlink to ssh_config
+  file: src='{{ work_dir }}/keys/{{ ec2_region }}/{{ ssh_config_file }}' dest='{{ work_dir }}/.ssh_config' state=link

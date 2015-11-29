@@ -17,4 +17,4 @@ do
   shift
 done
 
-ansible-playbook --extra-vars "env=$env dns=$dns" clean.yaml $vflag
+ansible-playbook --extra-vars "environ=$env dns=$dns" clean.yaml $vflag

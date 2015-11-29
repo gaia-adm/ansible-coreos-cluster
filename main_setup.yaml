@@ -1,6 +1,6 @@
 ---
 - name: Find previous instances and clean up
-  hosts: tag_Name_NAT:&tag_env_{{ env | default("production") }}
+  hosts: tag_Name_NAT:&tag_env_{{ environ | default("develop") }}:&{{ lookup('env', 'AWS_DEFAULT_REGION') }}
   gather_facts: False
   tags: find
   tasks:
@@ -13,11 +13,10 @@
   gather_facts: False
   vars_files:
   - keys/credentials.yaml
-  - group_vars/all.yaml
-  - group_vars/envs/{{ env | default("production") }}/vpc.yaml
-  - group_vars/envs/{{ env | default("production") }}/etcd.yaml
-  - group_vars/envs/{{ env | default("production") }}/nat.yaml
-  - group_vars/envs/{{ env | default("production") }}/coreos.yaml
+  - group_vars/vpc.yaml
+  - group_vars/etcd_cluster.yaml
+  - group_vars/nat.yaml
+  - group_vars/coreos_cluster.yaml
 
   roles:
     # generate etcd key pair
@@ -67,7 +66,5 @@
 - hosts: terminate-group
   connection: local
   gather_facts: False
-  vars_files:
-  - group_vars/all.yaml
   roles:
     - terminate
