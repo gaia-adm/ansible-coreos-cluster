@@ -15,6 +15,11 @@ influxdb_volume:
   name: "influxdb-{{ environ }}"
   size: 80
   type: gp2
+  
+es_volume:
+  name: "es-{{ environ }}"
+  size: 80
+  type: gp2
 
 rabbitmq_master_volume:
   name: "rabbitmq-master-{{ environ }}"
