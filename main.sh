@@ -23,4 +23,4 @@ ansible-playbook --extra-vars "environ=$env dns=$dns" main_setup.yaml $vflag \
 && echo "Waiting for 60 seconds to make sure all machines are ready" \
 && sleep 60 \
 && ansible-playbook --extra-vars "environ=$env" ssh_config_amazon.yaml $vflag \
-&& ansible-playbook --extra-vars "envviron=$env" main_config.yaml $vflag
+&& ansible-playbook --extra-vars "environ=$env" main_config.yaml $vflag
