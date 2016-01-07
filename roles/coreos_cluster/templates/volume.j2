@@ -6,5 +6,9 @@
       "VolumeType": "gp2",
       "VolumeSize": {{ volume_size.coreos[environ] | int }}
     }
+  },
+  {
+    "DeviceName": "/dev/xvdb",
+    "NoDevice": true
   }
 ]
