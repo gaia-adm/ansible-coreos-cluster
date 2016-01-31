@@ -32,7 +32,7 @@ write-files:
     owner: root:root
     encoding: base64
     content: "{{ gaia_ca_key_content }}"
-   # put GPG keyrings on coreos
+  # put GPG keyrings on coreos
   - path: /etc/gaia/gaia-pubring.gpg
     permissions: 0600
     owner: root:root
@@ -43,6 +43,17 @@ write-files:
     owner: root:root
     encoding: base64
     content: "{{ gaia_secring_content }}"
+  # configure journald options
+  - path: /tmp/journald_update
+    permissions: 0644
+    owner: root:root
+    content: |
+      [Journal]
+      SystemMaxUse=2G
+      SystemMaxFileSize=20M
+      MaxFileSec=1day
+      SystemMaxFiles=100
+      # see full list of journald settings in /root/journald.conf.BACKUP
 coreos:
   etcd2:
     # use same discovery url as for etcd cluster; configure etcd to the "proxy" mode
@@ -102,6 +113,18 @@ coreos:
     command: start
   - name: fleet.service
     command: start
+  - name: runcmd.service
+    command: start
+    content: |
+      [Unit]
+      Description=Set customized journald options on coreos restart
+      [Service]
+      Type=oneshot
+      ExecStartPre=/bin/bash -c "cp --verbose --no-clobber /etc/systemd/journald.conf ~/journald.conf.BACKUP"
+      ExecStart=/bin/bash -c "/usr/bin/cat /tmp/journald_update > /etc/systemd/journald.conf"
+      ExecStartPost=/bin/bash -c "rm --verbose --force /tmp/journald_update"
+  - name: systemd-journald.service
+    command: restart
   - name: docker.service
     drop-ins:
     - name: 50-mk-docker-dns-opts.conf
