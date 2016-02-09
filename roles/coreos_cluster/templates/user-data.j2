@@ -135,7 +135,7 @@ coreos:
         EnvironmentFile=/run/docker_dns_opt.env
         EnvironmentFile=/run/docker_opts.env
         ExecStart=
-        ExecStart=/usr/lib/coreos/dockerd --daemon --host=fd:// $DOCKER_OPTS $DOCKER_OPT_DNS $DOCKER_OPT_BIP $DOCKER_OPT_MTU $DOCKER_OPT_IPMASQ
+        ExecStart=/usr/lib/coreos/dockerd daemon --host=fd:// $DOCKER_OPTS $DOCKER_OPT_DNS $DOCKER_OPT_BIP $DOCKER_OPT_MTU $DOCKER_OPT_IPMASQ
       command: start
   - name: docker-tcp.socket
     command: start
