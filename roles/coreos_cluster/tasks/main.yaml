@@ -242,6 +242,6 @@
     instance_name: "{{ postgres_name }}"
     region: "{{ ec2_region }}"
   register: dbf
-  until: dbf|success
+  until: dbf.instance.status == "available"
   retries: 15
   delay: 40
