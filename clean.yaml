@@ -127,6 +127,20 @@
     local_action: command aws iam delete-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }}
     ignore_errors: yes
 
+  # deleted RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
+  - rds:
+    command: delete
+    instance_name: "{{ postgres_name }}"
+    wait: yes
+    wait_timeout: 600
+  #  snapshot: "{{ postgres_name }}-snapshot"
+  - name: Create RDS subnet group
+    rds_subnet_group:
+      region: "{{ ec2_region }}"
+      state: absent
+      name: "postgres-{{ environ }}-{{ dns }}-subnet-group"
+
+
   # delete security groups
   - name: delete all vpc security groups
     ec2_group:
@@ -140,12 +154,12 @@
       - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
       - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}
+      - { name: "{{ rds_security_group.name }}", description: "{{ rds_security_group.desc }}"}
     ignore_errors: yes
     register: deletedSG
     until: deletedSG|success
     retries: 5
     delay: 10
-
 
   - name: delete vpc peering
     ec2_vpc_peering:

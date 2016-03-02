@@ -17,6 +17,7 @@
   - group_vars/etcd_cluster.yaml
   - group_vars/nat.yaml
   - group_vars/coreos_cluster.yaml
+  - group_vars/rds.yaml
 
   roles:
     # generate etcd key pair
@@ -43,6 +44,9 @@
 
     # create a new VPC
     - role: vpc
+
+    # create RDS
+    - role: rds_config
 
     # create etcd cluster (with autoscaling group)
     - role: etcd_cluster
