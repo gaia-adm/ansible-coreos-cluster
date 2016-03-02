@@ -13,6 +13,7 @@
   - group_vars/etcd_cluster.yaml
   - group_vars/nat.yaml
   - group_vars/coreos_cluster.yaml
+  - group_vars/rds.yaml
   roles:
     # delete volumes for coreos cluster
     - role: delete_volume
@@ -34,6 +35,7 @@
   - group_vars/etcd_cluster.yaml
   - group_vars/nat.yaml
   - group_vars/coreos_cluster.yaml
+  - group_vars/rds.yaml
   tasks:
   - name: remove autoscale groups for coreos and etcd
     ec2_asg:
@@ -130,6 +132,7 @@
   # deleted RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
   - rds:
       command: delete
+      region: "{{ ec2_region }}"
       instance_name: "{{ postgres_name }}"
       wait: yes
       wait_timeout: 600
