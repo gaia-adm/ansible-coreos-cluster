@@ -234,3 +234,14 @@
 - name: Turn off "source destination check" - needed for flunnel
   local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ item }} --no-source-dest-check
   with_items: "{{ asg_out.instances }}"
+
+# Check if DB is available
+- name: check Postgres availability
+  rds:
+    command: facts
+    instance_name: "{{ postgres_name }}"
+    region: "{{ ec2_region }}"
+  register: dbf
+  until: dbf|success
+  retries: 15
+  delay: 40

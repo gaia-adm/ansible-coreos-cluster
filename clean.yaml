@@ -136,6 +136,7 @@
       instance_name: "{{ postgres_name }}"
       wait: yes
       wait_timeout: 600
+    ignore_errors: true
       #  snapshot: "{{ postgres_name }}-snapshot"
   - name: Create RDS subnet group
     rds_subnet_group:
