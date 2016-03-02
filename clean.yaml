@@ -129,11 +129,11 @@
 
   # deleted RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
   - rds:
-    command: delete
-    instance_name: "{{ postgres_name }}"
-    wait: yes
-    wait_timeout: 600
-  #  snapshot: "{{ postgres_name }}-snapshot"
+      command: delete
+      instance_name: "{{ postgres_name }}"
+      wait: yes
+      wait_timeout: 600
+      #  snapshot: "{{ postgres_name }}-snapshot"
   - name: Create RDS subnet group
     rds_subnet_group:
       region: "{{ ec2_region }}"
