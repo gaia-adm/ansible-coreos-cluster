@@ -104,14 +104,8 @@
 - set_fact:
     rds_sg_out_stdout: "{{ rds_sg_out.stdout | from_json }}"
 - debug: var=rds_sg_out_stdout.SecurityGroups[0].GroupId
-- name: find coreos_sg
-  shell: "aws ec2 describe-security-groups --filters Name=group-name,Values='coreos_sg_{{ env_nick[environ] }}'"
-  register: core_sg_out
-- set_fact:
-    coreos_sg_out_stdout: "{{ core_sg_out.stdout | from_json }}"
-- debug: var=coreos_sg_out_stdout.SecurityGroups[0].GroupId
 - name: add rule
-  shell: "aws ec2 authorize-security-group-ingress --group-id {{ rds_sg_out_stdout.SecurityGroups[0].GroupId }} --protocol tcp --port 5432 --source-group {{ coreos_sg_out_stdout.SecurityGroups[0].GroupId }}"
+  shell: "aws ec2 authorize-security-group-ingress --group-id {{ rds_sg_out_stdout.SecurityGroups[0].GroupId }} --protocol tcp --port 5432 --source-group {{ coreos_sg.group_id }}"
 
 
 # generate user-data from template
