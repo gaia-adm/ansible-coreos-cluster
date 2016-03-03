@@ -107,6 +107,19 @@
 - name: add rule
   shell: "aws ec2 authorize-security-group-ingress --group-id {{ rds_sg_out_stdout.SecurityGroups[0].GroupId }} --protocol tcp --port 5432 --source-group {{ coreos_sg.group_id }}"
 
+# generate application security keys for further usage by Dex - should be in environment
+- name: generate dex admin api key
+  shell: "dd if=/dev/random bs=1 count=128 2>/dev/null | base64 | tr -d '\n'"
+  register: dex_admin_key_out
+- set_fact:
+    DEX_API_SECRET: "{{ dex_admin_key_out.stdout }}"
+- name: generate dex admin api key
+  shell: "dd if=/dev/random bs=1 count=32 2>/dev/null | base64 | tr -d '\n'"
+  register: dex_secret_key_out
+- set_fact:
+    DEX_SECRET: "{{ dex_secret_key_out.stdout }}"
+- debug: var="{{ DEX_API_SECRET }}"
+- debug: var="{{ DEX_SECRET }}"
 
 # generate user-data from template
 - name: create template
