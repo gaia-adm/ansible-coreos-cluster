@@ -130,6 +130,15 @@
     ignore_errors: yes
 
   # deleted RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
+  - name: check Postgres existence
+    rds:
+      command: facts
+      instance_name: "{{ postgres_name }}"
+      region: "{{ ec2_region }}"
+    register: dbf
+  - set_fact:
+      rds_ep: "{{ dbf.instance.endpoint }}"
+  - debug: var=rds_ep
   - name: Delete Route53 record set for postgres
     route53:
       command: delete
