@@ -96,3 +96,18 @@
   until: dbf|success
   retries: 6
   delay: 10
+- set_fact:
+    rds_ep: "{{ dbf.instance.endpoint }}"
+- debug: var=rds_ep
+
+- name: create Route53 record set for postgres
+  route53:
+    command: create
+    private_zone: True
+    zone: "{{ vpc_dns_zone }}"
+    record: "postgres.{{ vpc_dns_zone }}"
+    type: CNAME
+    value: "{{ rds_ep }}"
+    ttl: "{{ rds_posgres_ep_ttl }}"
+- set_fact:
+    POSTGRES_EP_OUT: "postgres.{{ vpc_dns_zone }}"

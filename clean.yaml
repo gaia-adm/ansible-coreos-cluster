@@ -130,7 +130,17 @@
     ignore_errors: yes
 
   # deleted RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
-  - rds:
+  - name: Delete Route53 record set for postgres
+    route53:
+      command: delete
+      private_zone: True
+      zone: "{{ vpc_dns_zone }}"
+      record: "postgres.{{ vpc_dns_zone }}"
+      type: CNAME
+      value: "{{ rds_ep }}"
+      ttl: "{{ rds_posgres_ep_ttl }}"
+  - name: Delete RDS
+    rds:
       command: delete
       region: "{{ ec2_region }}"
       instance_name: "{{ postgres_name }}"
@@ -138,7 +148,7 @@
       wait_timeout: 600
     ignore_errors: true
       #  snapshot: "{{ postgres_name }}-snapshot"
-  - name: Create RDS subnet group
+  - name: Delete RDS subnet group
     rds_subnet_group:
       region: "{{ ec2_region }}"
       state: absent
