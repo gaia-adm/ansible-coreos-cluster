@@ -94,11 +94,22 @@
   register: dbf
   ignore_errors: yes
   until: dbf|success
-  retries: 6
+  retries: 30
+  delay: 10
+
+- name: wait until the endpoint is ready
+  rds:
+    command: facts
+    region: "{{ ec2_region }}"
+    instance_name: "{{ postgres_name }}"
+  register: dbfacts
+  until: dbfacts|success and dbfacts.instance.endpoint
+  retries: 60
   delay: 10
 - set_fact:
-    rds_ep: "{{ dbf.instance.endpoint }}"
+    rds_ep: "{{ dbfacts.instance.endpoint }}"
 - debug: var=rds_ep
+
 
 - name: create Route53 record set for postgres
   route53:

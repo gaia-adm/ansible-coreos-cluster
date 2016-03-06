@@ -136,8 +136,10 @@
       instance_name: "{{ postgres_name }}"
       region: "{{ ec2_region }}"
     register: dbf
+    ignore_errors: yes
   - set_fact:
       rds_ep: "{{ dbf.instance.endpoint }}"
+    when: dbf|success
   - debug: var=rds_ep
   - name: Delete Route53 record set for postgres
     route53:
@@ -148,13 +150,15 @@
       type: CNAME
       value: "{{ rds_ep }}"
       ttl: "{{ rds_posgres_ep_ttl }}"
+    when: dbf|success
   - name: Delete RDS
     rds:
       command: delete
       region: "{{ ec2_region }}"
       instance_name: "{{ postgres_name }}"
       wait: yes
-      wait_timeout: 600
+      wait_timeout: 900
+    when: dbf|success
     ignore_errors: true
       #  snapshot: "{{ postgres_name }}-snapshot"
   - name: Delete RDS subnet group
