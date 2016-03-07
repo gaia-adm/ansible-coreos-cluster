@@ -104,7 +104,7 @@
     instance_name: "{{ postgres_name }}"
   register: dbfacts
   until: dbfacts|success and dbfacts.instance.endpoint
-  retries: 60
+  retries: 90
   delay: 10
 - set_fact:
     rds_ep: "{{ dbfacts.instance.endpoint }}"
