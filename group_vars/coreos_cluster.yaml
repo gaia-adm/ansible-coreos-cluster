@@ -5,16 +5,6 @@ coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
 coreos_cluster_size: 4
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
-
-grafana_volume:
-  name: "grafana-{{ environ }}"
-  size: 5
-  type: gp2
-
-influxdb_volume:
-  name: "influxdb-{{ environ }}"
-  size: 80
-  type: gp2
   
 es_volume:
   name: "es-{{ environ }}"
