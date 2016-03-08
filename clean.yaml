@@ -129,7 +129,7 @@
     local_action: command aws iam delete-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }}
     ignore_errors: yes
 
-  # deleted RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
+  # Delete RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
   - name: check Postgres existence
     rds:
       command: facts
