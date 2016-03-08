@@ -97,18 +97,30 @@
   retries: 30
   delay: 10
 
-- name: wait until the endpoint is ready
-  rds:
-    command: facts
-    region: "{{ ec2_region }}"
-    instance_name: "{{ postgres_name }}"
+# Fetch endpoint; use aws cli because ansible returns the endpoint
+# only after the status switched to available - too long to wait
+- name: wait until the endpoint is ready (availability is checked later)
+  shell: "aws rds describe-db-instances --db-instance-identifier {{ postgres_name }}"
   register: dbfacts
-  until: dbfacts|success and dbfacts.instance.endpoint
+  until: dbfacts.stdout.find("rds.amazonaws.com") != -1
   retries: 90
   delay: 10
 - set_fact:
-    rds_ep: "{{ dbfacts.instance.endpoint }}"
+    rds_ep: "{{ dbfacts.stdout | from_json | get_rds_endpoint() }}"
 - debug: var=rds_ep
+
+#- name: wait until the endpoint is ready - via ansible
+#  rds:
+#    command: facts
+#    region: "{{ ec2_region }}"
+#    instance_name: "{{ postgres_name }}"
+#  register: dbfacts
+#  until: dbfacts|success and dbfacts.instance.endpoint
+#  retries: 90
+#  delay: 10
+#- set_fact:
+#    rds_ep: "{{ dbfacts.instance.endpoint }}"
+#- debug: var=rds_ep
 
 
 - name: create Route53 record set for postgres

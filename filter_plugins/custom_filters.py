@@ -37,6 +37,10 @@ def get_hosted_zone_id(value):
 def has_volume_state(volume_info, state):
     return len(volume_info['Volumes']) == 1 and volume_info['Volumes'][0]['State'] == state
 
+# parses "aws rds describe-db-instances --db-instance-identifier <id>" output to fetch the entdpoint - must be used with db-instance-identifier
+def get_rds_endpoint(db_instance):
+    return db_instance['DBInstances'][0]['Endpoint']['Address']
+
 class FilterModule(object):
     ''' Ansible core jinja2 filters '''
 
@@ -47,4 +51,5 @@ class FilterModule(object):
             'get_dns_zone': get_dns_zone,
             'get_hosted_zone_id': get_hosted_zone_id,
             'has_volume_state': has_volume_state,
+            'get_rds_endpoint': get_rds_endpoint
         }
