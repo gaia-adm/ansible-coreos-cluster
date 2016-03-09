@@ -31,6 +31,18 @@ Host {{ docker_registry_ips }}
     ControlPersist 10m
     ProxyCommand ssh -q -A -t -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile ./keys/{{ ec2_region }}/{{ docker_registry_keypair_file }}
+# RDS instance (Postgres)
+Host postgres.{{ vpc_dns_zone }}
+    User ubuntu
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -v -N -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} -L :5432:%h:5432 {{ bastion_user }}@{{ bastion_hostname }}
+    IdentityFile ./keys/{{ ec2_region }}/{{ bastion_keypair_file }}
 # coreos cluster
 Host {{ coreos_ips }}
     User core
