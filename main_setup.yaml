@@ -1,13 +1,4 @@
 ---
-- name: Find previous instances and clean up
-  hosts: tag_Name_NAT:&tag_env_{{ environ | default("develop") }}:&{{ lookup('env', 'AWS_DEFAULT_REGION') }}
-  gather_facts: False
-  tags: find
-  tasks:
-    - name: add to terminate-group
-      group_by:
-        key: terminate-group
-
 - hosts: localhost
   connection: local
   gather_facts: False
