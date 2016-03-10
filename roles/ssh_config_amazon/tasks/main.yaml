@@ -12,13 +12,6 @@
     bastion_hostname: "{{ bastion_info_json | ec2_instance_info('PublicDnsName') | first }}"
     bastion_hostnames: "{{ bastion_info_json | ec2_instance_info('PublicDnsName') | join(' ') }}"
 
-# detect Bastion-NAT information
-- name: Detect Bastion-NAT info
-  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ bastion_nat_instance_tags.Name }}' 'Name=tag:group,Values={{ bastion_nat_instance_tags.group }}' 'Name=tag:env,Values={{ bastion_nat_instance_tags.env }}' --output json"
-  register: bastion_nat_info_out
-- set_fact:
-    bastion_nat_ips: "{{ bastion_nat_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
-
 # detect docker-registry information
 - name: Detect docker-registry info
   shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ docker_registry_instance_tags.Name }}' 'Name=tag:group,Values={{ docker_registry_instance_tags.group }}' 'Name=tag:env,Values={{ docker_registry_instance_tags.env }}' 'Name=tag:type,Values={{ docker_registry_instance_tags.type }}' --output json"
@@ -39,13 +32,6 @@
   register: etcd_info_out
 - set_fact:
     etcd_ips: "{{ etcd_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
-
-# detect NAT information
-- name: Detect NAT info
-  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ nat_instance_tags.Name }}' 'Name=tag:group,Values={{ nat_instance_tags.group }}' 'Name=tag:env,Values={{ nat_instance_tags.env }}' --output json"
-  register: nat_info_out
-- set_fact:
-    nat_ips: "{{ nat_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
 
 # generate ssh_config from template
 - name: generate ssh_config
