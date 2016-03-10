@@ -7,18 +7,6 @@ Host {{ bastion_hostnames }}
     UserKnownHostsFile /dev/null
     IdentityFile ./keys/{{ ec2_region }}/{{ bastion_keypair_file }}
     BatchMode yes
-# bastion-NAT
-Host {{ bastion_nat_ips }}
-    User ec2-user
-    StrictHostKeyChecking no
-    PasswordAuthentication no
-    ServerAliveInterval 60
-    TCPKeepAlive yes
-    ControlMaster auto
-    ControlPath ~/.ssh/mux-%r@%h:%p
-    ControlPersist 10m
-    ProxyCommand ssh -q -A -t -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
-    IdentityFile ./keys/{{ ec2_region }}/{{ bastion_nat_keypair_file }}
 # docker-registry cluster
 Host {{ docker_registry_ips }}
     User core
@@ -55,15 +43,3 @@ Host {{ etcd_ips }}
     ControlPersist 10m
     ProxyCommand ssh -q -A -t -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile ./keys/{{ ec2_region }}/{{ etcd_keypair_file }}
-# NAT
-Host {{ nat_ips }}
-    User ec2-user
-    StrictHostKeyChecking no
-    PasswordAuthentication no
-    ServerAliveInterval 60
-    TCPKeepAlive yes
-    ControlMaster auto
-    ControlPath ~/.ssh/mux-%r@%h:%p
-    ControlPersist 10m
-    ProxyCommand ssh -q -A -t -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
-    IdentityFile ./keys/{{ ec2_region }}/{{ nat_keypair_file }}
