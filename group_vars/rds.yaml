@@ -1,0 +1,33 @@
+rds_security_group:
+  name: "rds_sg_{{ env_nick[environ] }}"
+  desc: the security group for RDS
+  rules:
+    - proto: tcp
+      from_port: 0
+      to_port: 65535
+      group_name: "rds_sg_{{ env_nick[environ] }}"
+#    - proto: tcp
+#      from_port: 0
+#      to_port: 65535
+#      group_name: "coreos_sg_{{ env_nick[environ] }}"
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 5432
+      to_port: 5432
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+
+iops:
+  production: 1000
+  develop: 1000
+
+backup_retention:
+  production: 7
+  develop: 1
+
+postgres_name: "postgres-{{ environ }}-{{ dns }}"
+postgres_version: 9.4.5
+
+rds_posgres_ep_ttl: 300

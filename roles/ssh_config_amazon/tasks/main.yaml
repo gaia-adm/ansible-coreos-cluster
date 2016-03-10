@@ -1,3 +1,5 @@
+- include_vars: group_vars/vpc.yaml
+
 # these tasks generate ssh.config for deployment from localhost to amazon
 - set_fact:
     work_dir: "{{ lookup('env', 'PWD') }}"
