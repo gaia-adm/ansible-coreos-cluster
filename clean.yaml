@@ -132,7 +132,6 @@
       vpc_id: "{{ vpc.vpc_id }}"
       state: absent
     with_items:
-      - { name: "{{ nat_security_group.name }}", description: "{{ nat_security_group.desc }}"}
       - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
       - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}

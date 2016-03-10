@@ -5,9 +5,6 @@ bastion_instance_tags: { "Name": "bastion", "group": "gaia", "env": "{{ environ 
 bastion_user: "ubuntu"
 bastion_keypair_file: "bastion-key-{{ env_nick[environ] }}.pem"
 
-bastion_nat_instance_tags: { "Name": "Bastion_NAT", "group": "gaia", "env": "{{ environ }}" }
-bastion_nat_keypair_file: "bastion-nat-key-{{ env_nick[environ] }}.pem"
-
 docker_registry_instance_tags:  { "Name": "docker-registry", "group": "gaia", "env": "{{ environ }}", "type": "docker-registry-vm" }
 docker_registry_keypair_file: "docker-registry-key-{{ env_nick[environ] }}.pem"
 
@@ -16,6 +13,3 @@ coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
 
 etcd_instance_tags:  { "Name": "etcd", "group": "gaia", "env": "{{ environ }}", "type": "cluster_node" }
 etcd_keypair_file: "etcd-key-{{ env_nick[environ] }}.pem"
-
-nat_instance_tags: { "Name": "NAT", "group": "gaia", "env": "{{ environ }}" }
-nat_keypair_file: "nat-key-{{ env_nick[environ] }}.pem"

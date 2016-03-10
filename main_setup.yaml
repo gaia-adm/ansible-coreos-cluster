@@ -24,11 +24,6 @@
       keypair_region: "{{ ec2_region }}"
       keypair_name: "{{ etcd_keypair_name }}"
       keypair_file: "{{ etcd_keypair_file }}"
-    # generate nat key pair
-    - role: keygen
-      keypair_region: "{{ ec2_region }}"
-      keypair_name: "{{ nat_keypair_name }}"
-      keypair_file: "{{ nat_keypair_file }}"
     # generate coreos key pair
     - role: keygen
       keypair_region: "{{ ec2_region }}"
