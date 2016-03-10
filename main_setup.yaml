@@ -15,7 +15,6 @@
   - keys/credentials.yaml
   - group_vars/vpc.yaml
   - group_vars/etcd_cluster.yaml
-  - group_vars/nat.yaml
   - group_vars/coreos_cluster.yaml
 
   roles:

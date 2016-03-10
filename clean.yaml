@@ -11,7 +11,6 @@
   vars_files:
   - group_vars/vpc.yaml
   - group_vars/etcd_cluster.yaml
-  - group_vars/nat.yaml
   - group_vars/coreos_cluster.yaml
   roles:
     # delete volumes for coreos cluster
@@ -28,7 +27,6 @@
   vars_files:
   - group_vars/vpc.yaml
   - group_vars/etcd_cluster.yaml
-  - group_vars/nat.yaml
   - group_vars/coreos_cluster.yaml
   tasks:
   - name: remove autoscale groups for coreos and etcd
