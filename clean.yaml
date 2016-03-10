@@ -41,7 +41,7 @@
       vpc_public_subnets_full: "{{ vpc.subnets | get_subnets('tier', 'public') }}"
 
   - name: get NAT gateways using subnet id
-    shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ vpc_public_subnets_full[0].id }}"
+    shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ vpc_public_subnets_full[0] }}"
     register: nat_gateways
   - set_fact:
       nat_gateways_info: "{{ nat_gateways.stdout | from_json }}"
