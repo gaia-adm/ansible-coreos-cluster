@@ -1,13 +1,4 @@
 ---
-- name: Find previous instances and clean up
-  hosts: tag_Name_NAT:&tag_env_{{ environ | default("develop") }}:&{{ lookup('env', 'AWS_DEFAULT_REGION') }}
-  gather_facts: False
-  tags: find
-  tasks:
-    - name: add to terminate-group
-      group_by:
-        key: terminate-group
-
 - hosts: localhost
   connection: local
   gather_facts: False
@@ -15,7 +6,6 @@
   - keys/credentials.yaml
   - group_vars/vpc.yaml
   - group_vars/etcd_cluster.yaml
-  - group_vars/nat.yaml
   - group_vars/coreos_cluster.yaml
   - group_vars/rds.yaml
 
@@ -25,11 +15,6 @@
       keypair_region: "{{ ec2_region }}"
       keypair_name: "{{ etcd_keypair_name }}"
       keypair_file: "{{ etcd_keypair_file }}"
-    # generate nat key pair
-    - role: keygen
-      keypair_region: "{{ ec2_region }}"
-      keypair_name: "{{ nat_keypair_name }}"
-      keypair_file: "{{ nat_keypair_file }}"
     # generate coreos key pair
     - role: keygen
       keypair_region: "{{ ec2_region }}"
