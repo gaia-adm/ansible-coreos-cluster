@@ -55,7 +55,14 @@
     ignore_errors: yes
     when: nat_gateways_info.NatGateways | length > 0
 
-  - name: delete elastic ip
+  - name: wait until NAT gateway deleted
+    shell: "aws ec2 describe-nat-gateways --nat-gateway-ids {{ nat_gateways_info.NatGateways[0].NatGatewayId }}"
+    register: nat_gateway
+    until: nat_gateway.stdout.find( '\"deleted\"' ) != -1
+    retries: 30
+    delay: 5
+
+  - name: delete elastic ip (can't be deleted before NAT gateway)
     shell: "aws ec2 release-address --allocation-id {{ nat_gateways_info.NatGateways[0].NatGatewayAddresses[0].AllocationId }}"
     ignore_errors: yes
     when: nat_gateways_info.NatGateways | length > 0
