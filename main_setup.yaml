@@ -40,7 +40,9 @@
     - role: create_volume
       volume: "{{ es_volume }}"
     - role: create_volume
-      volume: "{{ rabbitmq_master_volume }}"
+      volume: "{{ rabbitmq_volume_1 }}"
+    - role: create_volume
+      volume: "{{ rabbitmq_volume_2 }}"
     - role: create_volume
       volume: "{{ result_upload_volume }}"
 

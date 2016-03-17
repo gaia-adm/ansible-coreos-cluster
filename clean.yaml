@@ -12,7 +12,9 @@
     - role: delete_volume
       volume: "{{ es_volume }}"
     - role: delete_volume
-      volume: "{{ rabbitmq_master_volume }}"
+      volume: "{{ rabbitmq_volume_1 }}"
+    - role: delete_volume
+      volume: "{{ rabbitmq_volume_2 }}"
     - role: delete_volume
       volume: "{{ result_upload_volume }}"
 

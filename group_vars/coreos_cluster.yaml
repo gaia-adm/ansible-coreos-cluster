@@ -11,8 +11,13 @@ es_volume:
   size: 80
   type: gp2
 
-rabbitmq_master_volume:
-  name: "rabbitmq-master-{{ environ }}"
+rabbitmq_volume_1:
+  name: "rabbitmq-1-{{ environ }}"
+  size: 20
+  type: gp2
+
+rabbitmq_volume_2:
+  name: "rabbitmq-2-{{ environ }}"
   size: 20
   type: gp2
 
