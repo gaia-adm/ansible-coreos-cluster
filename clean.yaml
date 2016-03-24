@@ -61,6 +61,7 @@
     until: nat_gateway_to_delete.stdout.find( '\"deleted\"' ) != -1
     retries: 30
     delay: 5
+    when: nat_gateways_info.NatGateways | length > 0
 
   - name: delete elastic ip (can't be deleted before NAT gateway)
     shell: "aws ec2 release-address --allocation-id {{ nat_gateways_info.NatGateways[0].NatGatewayAddresses[0].AllocationId }}"
