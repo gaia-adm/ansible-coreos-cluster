@@ -13,3 +13,7 @@ coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
 
 etcd_instance_tags:  { "Name": "etcd", "group": "gaia", "env": "{{ environ }}", "type": "cluster_node" }
 etcd_keypair_file: "etcd-key-{{ env_nick[environ] }}.pem"
+
+rabbitmq_instance_tags:  { "Name": "rabbitmq", "group": "gaia", "env": "{{ environ }}", "type": "cluster_node" }
+coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
+

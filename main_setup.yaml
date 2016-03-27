@@ -8,6 +8,7 @@
   - group_vars/etcd_cluster.yaml
   - group_vars/coreos_cluster.yaml
   - group_vars/rds.yaml
+  - group_vars/rabbitmq_cluster.yaml
 
   roles:
     # generate etcd key pair
@@ -48,6 +49,9 @@
 
     # create coreos cluster (with autoscaling group): must run after etcd_cluster role
     - role: coreos_cluster
+
+    # create RabbitMQ cluster near CoreOS cluster (same network and discovery URL, different autoscaling group)
+    - role: rabbitmq_cluster
 
     # setup network: VPC peering, NAT, route tables
     - role: network

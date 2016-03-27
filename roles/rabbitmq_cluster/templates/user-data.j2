@@ -65,7 +65,7 @@ coreos:
     proxy: on
   fleet:
     public-ip: $private_ipv4
-    metadata: purpose=general
+    metadata: purpose=rabbitmq
   flannel:
     interface: $private_ipv4
   units:
@@ -85,8 +85,6 @@ coreos:
       ExecStartPre=/usr/bin/systemctl set-environment AWS_SECRET_KEY={{ coreos_aws_secret_key }}
       ExecStartPre=/usr/bin/systemctl set-environment ENVIRON_LOCATION=amazon
       ExecStartPre=/usr/bin/systemctl set-environment DATADOG_API_KEY={{ datadog_api_key }}
-      ExecStartPre=/usr/bin/bash -a -c 'if [ ! -r /etc/env-dex ] ; then /usr/bin/echo DEX_OVERLORD_ADMIN_API_SECRET={{ DEX_API_SECRET }} >> /etc/env-dex && /usr/bin/echo DEX_KEY_SECRET={{ DEX_SECRET }} >> /etc/env-dex && /usr/bin/echo GOOGLE_CLIENT_SECRET={{ GOOGLE_CLIENT_SECRET }} >> /etc/env-dex && /usr/bin/echo GOOGLE_CLIENT_ID={{ GOOGLE_CLIENT_ID }} >> /etc/env-dex && /usr/bin/echo MAILGUN_PRIVATE_KEY={{ MAILGUN_PRIVATE_KEY }} >> /etc/env-dex && /usr/bin/echo MAILGUN_PUBLIC_KEY={{ MAILGUN_PUBLIC_KEY }} >> /etc/env-dex && /usr/bin/echo MAILGUN_DOMAIN={{ MAILGUN_DOMAIN }} >> /etc/env-dex && /usr/bin/echo DB_ALIAS={{ POSTGRES_EP_OUT }}:5432 >> /etc/env-dex ; fi'
-      ExecStartPre=/usr/bin/systemctl set-environment DOMAIN={{ dns }}.gaiahub.io
       ExecStart=/usr/bin/systemctl set-environment ENVIRON={{ environ | default("develop") }}
       [Install]
       WantedBy=multi-user.target
