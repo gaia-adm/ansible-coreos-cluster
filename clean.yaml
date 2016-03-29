@@ -8,6 +8,7 @@
   - group_vars/coreos_cluster.yaml
   - group_vars/rds.yaml
   - group_vars/rabbitmq_cluster.yaml
+  - group_vars/elasticsearch_cluster.yaml
 
   roles:
     # delete volumes for coreos cluster
@@ -29,6 +30,7 @@
   - group_vars/coreos_cluster.yaml
   - group_vars/rds.yaml
   - group_vars/rabbitmq_cluster.yaml
+  - group_vars/elasticsearch_cluster.yaml
 
   tasks:
   # find vpc id
@@ -70,7 +72,7 @@
     ignore_errors: yes
     when: nat_gateways_info.NatGateways | length > 0
 
-  - name: remove autoscale groups for coreos, rabbitmq and etcd
+  - name: remove autoscale groups for coreos, rabbitmq, elasticsearch and etcd
     ec2_asg:
       region: "{{ ec2_region }}"
       name: "{{ item.name }}"
@@ -79,9 +81,10 @@
     with_items:
       - { name: "{{ etcd_asg_name }}", lc_name: "{{ etcd_lc_name }}" }
       - { name: "{{ rabbitmq_asg_name }}", lc_name: "{{ rabbitmq_lc_name }}" }
+      - { name: "{{ elasticsearch_asg_name }}", lc_name: "{{ elasticsearch_lc_name }}" }
       - { name: "{{ coreos_asg_name }}", lc_name: "{{ coreos_lc_name }}" }
 
-  - name: remove launch configurations for coreos, rabbitmq and etcd
+  - name: remove launch configurations for coreos, rabbitmq, elasticsearch and etcd
     ec2_lc:
       region: "{{ ec2_region }}"
       name: "{{ item.name }}"
@@ -90,6 +93,7 @@
     with_items:
       - { name: "{{ etcd_lc_name }}", type: "{{ etcd_instance_type }}" }
       - { name: "{{ rabbitmq_lc_name }}", type: "{{ rabbitmq_instance_type }}" }
+      - { name: "{{ elasticsearch_lc_name }}", type: "{{ elasticsearch_instance_type }}" }
       - { name: "{{ coreos_lc_name }}", type: "{{ coreos_instance_type }}" }
 
   # disassociate VPC from Bastion DNS
@@ -204,6 +208,7 @@
       - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
       - { name: "{{ rds_security_group.name }}", description: "{{ rds_security_group.desc }}"}
       - { name: "{{ rabbitmq_security_group.name }}", description: "{{ rabbitmq_security_group.desc }}"}
+      - { name: "{{ elasticsearch_security_group.name }}", description: "{{ elasticsearch_security_group.desc }}"}
       - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
       - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}
     ignore_errors: yes

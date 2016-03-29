@@ -35,6 +35,14 @@
 - set_fact:
     rabbitmq_ips: "{{ rabbitmq_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
 
+# detect elasticsearch cluser information
+- name: Detect Elasticsearch cluster info
+  shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ elasticsearch_instance_tags.Name }}' 'Name=tag:group,Values={{ elasticsearch_instance_tags.group }}' 'Name=tag:env,Values={{ elasticsearch_instance_tags.env }}' 'Name=tag:type,Values={{ elasticsearch_instance_tags.type }}' --output json"
+  register: elasticsearch_info_out
+- set_fact:
+    elasticsearch_ips: "{{ elasticsearch_info_out.stdout | from_json | ec2_instance_info('PrivateIpAddress') | join(' ') }}"
+
+
 # detect etcd information
 - name: Detect etcd info
   shell: "aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values={{ etcd_instance_tags.Name }}' 'Name=tag:group,Values={{ etcd_instance_tags.group }}' 'Name=tag:env,Values={{ etcd_instance_tags.env }}' 'Name=tag:type,Values={{ etcd_instance_tags.type }}' --output json"

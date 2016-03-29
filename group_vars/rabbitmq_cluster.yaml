@@ -5,21 +5,9 @@ rabbitmq_cluster_size: 2
 rabbitmq_max_cluster_size: 4
 rabbitmq_health_check_period: 60
   
-rabbitmq_volume_1:
-  name: "rabbitmq-1-{{ environ }}"
-  size: 20
-  type: gp2
-
-rabbitmq_volume_2:
-  name: "rabbitmq-2-{{ environ }}"
-  size: 20
-  type: gp2
-
 rabbitmq_asg_name: "rabbitmq-asg-{{ env_nick[environ] }}"
 
 rabbitmq_lc_name: "rabbitmq-lc-{{ env_nick[environ] }}"
-
-rabbitmq_elb_name: "rabbitmq-elb-{{ env_nick[environ] }}"
 
 rabbitmq_instance_type: "{{ instance_type.rabbitmq[environ] }}"
 

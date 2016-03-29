@@ -1,0 +1,58 @@
+# elasticsearch - parameters
+# parameters that inherited from CoreOS are stored in coreos.yaml
+
+elasticsearch_cluster_size: 2
+elasticsearch_max_cluster_size: 4
+elasticsearch_health_check_period: 60
+  
+elasticsearch_asg_name: "elasticsearch-asg-{{ env_nick[environ] }}"
+
+elasticsearch_lc_name: "elasticsearch-lc-{{ env_nick[environ] }}"
+
+elasticsearch_instance_type: "{{ instance_type.elasticsearch[environ] }}"
+
+elasticsearch_instance_tags:
+  - Name: elasticsearch
+    group: gaia
+    type: cluster_node
+    env: "{{ environ }}"
+    decription: Elasticsearch HA Cluster Node
+
+elasticsearch_security_group:
+  name: "elasticsearch_sg_{{ env_nick[environ] }}"
+  desc: the security group for Elasticsearch cluster
+  rules:
+    - proto: tcp
+      from_port: 0
+      to_port: 65535
+      group_name: "elasticsearch_sg_{{ env_nick[environ] }}"
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 9300
+      to_port: 9300
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 9200
+      to_port: 9200
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 22 
+      to_port: 22
+      group_id: "{{ coreos_sg.group_id }}"
+    - proto: tcp
+      from_port: 9200
+      to_port: 9200
+      group_id: "{{ coreos_sg.group_id }}"
+    - proto: tcp
+      from_port: 9300
+      to_port: 9300
+      group_id: "{{ coreos_sg.group_id }}"
+
+
+# https server certificate
+gaia_ca_file: "ca.{{ vpc_dns_zone }}"
+
+skydns_ca_subj: "/C=/ST=/L=/O=/CN=skydns.local"
