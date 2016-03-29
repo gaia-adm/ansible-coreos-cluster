@@ -65,7 +65,7 @@ coreos:
     proxy: on
   fleet:
     public-ip: $private_ipv4
-    metadata: purpose=rabbitmq
+    metadata: rabbitmq=true
   flannel:
     interface: $private_ipv4
   units:
