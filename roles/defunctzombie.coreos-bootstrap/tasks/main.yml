@@ -30,11 +30,3 @@
   copy: src=runner dest=~/bin/pip mode=0755
   when: need_pip | failed
 
-- name: Restart flanneld to ensure good networking
-  shell: "sudo systemctl restart flanneld"
-  ignore_errors: True
-
-- name: Restart docker to ensure good networking
-  shell: "sudo systemctl restart docker"
-  ignore_errors: True
-
