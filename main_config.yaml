@@ -7,6 +7,7 @@
   gather_facts: False
   roles:
     - role: defunctzombie.coreos-bootstrap
+    - role: postbootstrap_config
 
 # add coreos-cluster vpc machines configuration here
 

@@ -43,6 +43,30 @@ Host {{ coreos_ips }}
     ControlPersist 10m
     ProxyCommand ssh -q -A -t -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
     IdentityFile ./keys/{{ ec2_region }}/{{ coreos_keypair_file }}
+# RabbitMQ cluster
+Host {{ rabbitmq_ips }}
+    User core
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -q -A -t -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    IdentityFile ./keys/{{ ec2_region }}/{{ coreos_keypair_file }}
+# Elasticsearch cluster
+Host {{ elasticsearch_ips }}
+    User core
+    StrictHostKeyChecking no
+    PasswordAuthentication no
+    ServerAliveInterval 60
+    TCPKeepAlive yes
+    ControlMaster auto
+    ControlPath ~/.ssh/mux-%r@%h:%p
+    ControlPersist 10m
+    ProxyCommand ssh -q -A -t -F ./keys/{{ ec2_region }}/{{ ssh_config_file }} {{ bastion_user }}@{{ bastion_hostname }} -W %h:%p
+    IdentityFile ./keys/{{ ec2_region }}/{{ coreos_keypair_file }}
 # etcd cluster
 Host {{ etcd_ips }}
     User core

@@ -1,0 +1,53 @@
+# rabbitmq - parameters
+# parameters that inherited from CoreOS are stored in coreos.yaml
+
+rabbitmq_cluster_size: 2
+rabbitmq_max_cluster_size: 4
+rabbitmq_health_check_period: 60
+  
+rabbitmq_asg_name: "rabbitmq-asg-{{ env_nick[environ] }}"
+
+rabbitmq_lc_name: "rabbitmq-lc-{{ env_nick[environ] }}"
+
+rabbitmq_instance_type: "{{ instance_type.rabbitmq[environ] }}"
+
+rabbitmq_instance_tags:
+  - Name: rabbitmq
+    group: gaia
+    type: cluster_node
+    env: "{{ environ }}"
+    decription: RabbitMQ HA Cluster Node
+
+rabbitmq_security_group:
+  name: "rabbitmq_sg_{{ env_nick[environ] }}"
+  desc: the security group for RabbitMQ cluster
+  rules:
+    - proto: tcp
+      from_port: 0
+      to_port: 65535
+      group_name: "rabbitmq_sg_{{ env_nick[environ] }}"
+    - proto: tcp
+      from_port: 22
+      to_port: 22
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 5672
+      to_port: 5672
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 15672
+      to_port: 15672
+      cidr_ip: "{{ bastion_vpc_cidr_block }}"
+    - proto: tcp
+      from_port: 22 
+      to_port: 22
+      group_id: "{{ coreos_sg.group_id }}"
+    - proto: tcp
+      from_port: 5672
+      to_port: 5672
+      group_id: "{{ coreos_sg.group_id }}"
+
+# https server certificate
+gaia_ca_file: "ca.{{ vpc_dns_zone }}"
+
+skydns_ca_subj: "/C=/ST=/L=/O=/CN=skydns.local"

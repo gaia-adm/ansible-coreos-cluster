@@ -1,6 +1,8 @@
 #!/bin/sh
 export EC2_INI_PATH=inventory/ec2.ini
 
+start=$(date +%s)
+
 # read input parameters
 vflag=""
 while [ $# -gt 0 ]
@@ -24,3 +26,9 @@ ansible-playbook --extra-vars "environ=$env dns=$dns" main_setup.yaml $vflag \
 && sleep 60 \
 && ansible-playbook --extra-vars "environ=$env" ssh_config_amazon.yaml $vflag \
 && ansible-playbook --extra-vars "environ=$env" main_config.yaml $vflag
+
+end=$(date +%s)
+duration=$(( $end - $start ))
+dur_min=$(( $duration/60 ))
+dur_sec=$(( $duration%60 ))
+echo Duration: $duration seconds \($dur_min minutes and $dur_sec seconds\)

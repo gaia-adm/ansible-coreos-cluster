@@ -1,0 +1,14 @@
+[
+  {
+    "DeviceName": "/dev/xvda",
+    "Ebs": {
+      "DeleteOnTermination": true,
+      "VolumeType": "gp2",
+      "VolumeSize": {{ volume_size.elasticsearch[environ] | int }}
+    }
+  },
+  {
+    "DeviceName": "/dev/xvdb",
+    "NoDevice": true
+  }
+]
