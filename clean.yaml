@@ -13,7 +13,11 @@
   roles:
     # delete volumes for coreos cluster
     - role: delete_volume
-      volume: "{{ es_volume }}"
+      volume: "{{ es_volume_1 }}"
+    - role: delete_volume
+      volume: "{{ es_volume_2 }}"
+    - role: delete_volume
+      volume: "{{ es_volume_3 }}"
     - role: delete_volume
       volume: "{{ rabbitmq_volume_1 }}"
     - role: delete_volume

@@ -1,8 +1,8 @@
 # elasticsearch - parameters
 # parameters that inherited from CoreOS are stored in coreos.yaml
 
-elasticsearch_cluster_size: 1
-elasticsearch_max_cluster_size: 1
+elasticsearch_cluster_size: 3
+elasticsearch_max_cluster_size: 3
 elasticsearch_health_check_period: 60
   
 elasticsearch_asg_name: "elasticsearch-asg-{{ env_nick[environ] }}"

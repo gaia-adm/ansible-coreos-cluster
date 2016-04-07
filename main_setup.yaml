@@ -40,7 +40,11 @@
 
     # create volumes for coreos cluster
     - role: create_volume
-      volume: "{{ es_volume }}"
+      volume: "{{ es_volume_1 }}"
+    - role: create_volume
+      volume: "{{ es_volume_2 }}"
+    - role: create_volume
+      volume: "{{ es_volume_3 }}"
     - role: create_volume
       volume: "{{ rabbitmq_volume_1 }}"
     - role: create_volume
