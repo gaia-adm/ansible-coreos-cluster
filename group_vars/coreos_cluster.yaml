@@ -2,7 +2,9 @@
 coreos_keypair_name: "coreos-keypair-{{ env_nick[environ] }}"
 coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
 
-coreos_cluster_size: 4
+coreos_cluster_size: 
+  production: 4
+  develop: 2
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
   
