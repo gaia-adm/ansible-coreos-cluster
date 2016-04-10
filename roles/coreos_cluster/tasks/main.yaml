@@ -272,4 +272,4 @@
   register: dbf
   until: dbf.instance.status == "available"
   retries: 15
-  delay: 40
+  delay: 60

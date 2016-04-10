@@ -1,5 +1,5 @@
-# create result_upload volume
-- debug: msg="Working on volume {{ volume.name }} ..."
+# create volume
+- debug: msg="Working on volume {{ volume_name }} ..."
 
 - name: "Create volume (non io1)"
   shell: "aws ec2 create-volume --size {{ volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ volume.type }} --output json"
@@ -23,4 +23,4 @@
     resource: "{{ volume_info.VolumeId }}"
     state: present
     tags:
-      Name: "{{ volume.name }}"
+      Name: "{{ volume_name }}"

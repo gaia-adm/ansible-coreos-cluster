@@ -8,28 +8,11 @@ coreos_cluster_size:
 coreos_max_cluster_size: 16
 coreos_health_check_period: 60
   
-es_volume_1:
-  name: "es-1-{{ environ }}"
+es_volume:
   size: 80
   type: gp2
 
-es_volume_2:
-  name: "es-2-{{ environ }}"
-  size: 80
-  type: gp2
-
-es_volume_3:
-  name: "es-3-{{ environ }}"
-  size: 80
-  type: gp2
-
-rabbitmq_volume_1:
-  name: "rabbitmq-1-{{ environ }}"
-  size: 20
-  type: gp2
-
-rabbitmq_volume_2:
-  name: "rabbitmq-2-{{ environ }}"
+rabbitmq_volume:
   size: 20
   type: gp2
 

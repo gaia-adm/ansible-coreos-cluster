@@ -32,25 +32,23 @@
     # create a new VPC
     - role: vpc
 
-    # create RDS
-    - role: rds_config
+    # create S3 bucket
+    - role: s3_config
 
     # create etcd cluster (with autoscaling group)
     - role: etcd_cluster
 
     # create volumes for coreos cluster
-    - role: create_volume
-      volume: "{{ es_volume_1 }}"
-    - role: create_volume
-      volume: "{{ es_volume_2 }}"
-    - role: create_volume
-      volume: "{{ es_volume_3 }}"
-    - role: create_volume
-      volume: "{{ rabbitmq_volume_1 }}"
-    - role: create_volume
-      volume: "{{ rabbitmq_volume_2 }}"
-    - role: create_volume
-      volume: "{{ result_upload_volume }}"
+    - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-1-{{ environ }}", when: 0 < elasticsearch_cluster_size }
+    - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-2-{{ environ }}", when: 1 < elasticsearch_cluster_size }
+    - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-3-{{ environ }}", when: 2 < elasticsearch_cluster_size }
+    - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-1-{{ environ }}", when: 0 < rabbitmq_cluster_size }
+    - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-2-{{ environ }}", when: 1 < rabbitmq_cluster_size }
+    - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-3-{{ environ }}", when: 2 < rabbitmq_cluster_size }
+    - { role: create_volume,  volume: "{{ result_upload_volume }}", volume_name: "result-upload-{{ environ }}" }
+
+    # create RDS
+    - role: rds_config
 
     # create coreos cluster (with autoscaling group): must run after etcd_cluster role
     - role: coreos_cluster

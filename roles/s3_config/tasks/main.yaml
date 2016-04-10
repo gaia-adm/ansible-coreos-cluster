@@ -1,0 +1,5 @@
+- debug: var=vpc_id
+
+- name: check if s3 bucket exists and available and create if it is not
+  s3: bucket="gaia.backup-{{ dns }}-{{ environ }}-{{ ec2_region }}" mode=create region="{{ ec2_region }}"
+

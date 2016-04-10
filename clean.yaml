@@ -11,19 +11,15 @@
   - group_vars/elasticsearch_cluster.yaml
 
   roles:
+
     # delete volumes for coreos cluster
-    - role: delete_volume
-      volume: "{{ es_volume_1 }}"
-    - role: delete_volume
-      volume: "{{ es_volume_2 }}"
-    - role: delete_volume
-      volume: "{{ es_volume_3 }}"
-    - role: delete_volume
-      volume: "{{ rabbitmq_volume_1 }}"
-    - role: delete_volume
-      volume: "{{ rabbitmq_volume_2 }}"
-    - role: delete_volume
-      volume: "{{ result_upload_volume }}"
+    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-1-{{ environ }}", when: 0 < elasticsearch_cluster_size }
+    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-2-{{ environ }}", when: 1 < elasticsearch_cluster_size }
+    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-3-{{ environ }}", when: 2 < elasticsearch_cluster_size }
+    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-1-{{ environ }}", when: 0 < rabbitmq_cluster_size }
+    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-2-{{ environ }}", when: 1 < rabbitmq_cluster_size }
+    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-3-{{ environ }}", when: 2 < rabbitmq_cluster_size }
+    - { role: delete_volume,  volume: "{{ result_upload_volume }}", volume_name: "result-upload-{{ environ }}" }
 
 - hosts: localhost
   connection: local
