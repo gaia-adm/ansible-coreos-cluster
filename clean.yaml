@@ -92,10 +92,10 @@
       instance_type: "{{ item.type }}"
       state: absent
     with_items:
-      - { name: "{{ etcd_lc_name }}", type: "{{ etcd_instance_type }}" }
       - { name: "{{ rabbitmq_lc_name }}", type: "{{ rabbitmq_instance_type }}" }
       - { name: "{{ elasticsearch_lc_name }}", type: "{{ elasticsearch_instance_type }}" }
       - { name: "{{ coreos_lc_name }}", type: "{{ coreos_instance_type }}" }
+      - { name: "{{ etcd_lc_name }}", type: "{{ etcd_instance_type }}" }
 
   # disassociate VPC from Bastion DNS
   - name: discover DNS zone

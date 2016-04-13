@@ -13,11 +13,16 @@
   when: "{{ volume_info.Volumes | length }} > 1"
 
 - name: "Detach volume (forced)"
-  ec2_vol:
-    id: "{{ volume_info.Volumes[0].VolumeId }}"
-    region: "{{ ec2_region }}"
-    instance: None
-  when: "{{ volume_info | has_volume_state('in-use') }}"    
+  shell: "aws ec2 detach-volume --volume-id {{ volume_info.Volumes[0].VolumeId }} --force"
+  when: "{{ volume_info | has_volume_state('in-use') }}"
+
+- name: "Wait until volume is detached"
+  shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ volume_name }}' --output json"
+  when: "{{ volume_info | has_volume_state('in-use') }}"
+  register: volume_out
+  until: "{{ volume_out  }}  and 'available' in {{ volume_out.stdout }}"
+  delay: 10
+  retries: 5
 
 - name: "Delete volume"
   ec2_vol:
