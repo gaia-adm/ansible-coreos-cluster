@@ -134,7 +134,7 @@
   register: dex_admin_key_out
 - set_fact:
     DEX_API_SECRET: "{{ dex_admin_key_out.stdout }}"
-- name: generate dex admin api key
+- name: generate dex secret key
   shell: "dd if=/dev/random bs=1 count=32 2>/dev/null | base64 | tr -d '\n'"
   register: dex_secret_key_out
 - set_fact:
