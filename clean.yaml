@@ -133,6 +133,19 @@
       value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
     when: elb_fact != ""
     ignore_errors: yes
+  - name: delete route53 4th level domain for webhooks
+    route53:
+      command: delete
+      zone:  gaiahub.io
+      record: "webhook.{{ dns }}.gaiahub.io"
+      type: A
+      alias: True
+      alias_hosted_zone_id: "{{ id }}"
+      value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
+    when: elb_fact != ""
+    ignore_errors: yes
+
+
 
   # delete coreos ELB
   - name: delete coreos ELB
