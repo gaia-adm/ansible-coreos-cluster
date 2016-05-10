@@ -232,6 +232,17 @@
     alias_hosted_zone_id: "{{ id }}"
     value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
 
+- name: create route53 4th level domain for webhooks
+  route53:
+    command: create
+    zone:  gaiahub.io
+    record: "webhook.{{ dns }}.gaiahub.io"
+    type: A
+    alias: True
+    overwrite: True
+    alias_hosted_zone_id: "{{ id }}"
+    value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
+
 # using JSON file as a workaround for Ansible bug: https://github.com/ansible/ansible/issues/9362
 - name: create coreos volume json template
   template: src='volume.j2' dest='/tmp/coreos_volume.json'
