@@ -20,7 +20,7 @@
   shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ volume_name }}' --output json"
   when: "{{ volume_info | has_volume_state('in-use') }}"
   register: volume_out
-  until: "{{ volume_out  }}  and 'available' in {{ volume_out.stdout }}"
+  until: (volume_out and "available" in volume_out.stdout)
   delay: 10
   retries: 5
 
