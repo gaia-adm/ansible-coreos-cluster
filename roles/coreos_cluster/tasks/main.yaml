@@ -73,7 +73,7 @@
     certificate_summary_list: "{{ acm_result.stdout }}"
 - name: set acm certificate var
   set_fact:
-    certificate_arn: "{{ certificate_summary_list.CertificateSummaryList | selectattr('DomainName','equalto', 'gaiahub.io') | map(attribute='CertificateArn') | list | first }}"
+    certificate_arn: "{{ certificate_summary_list.CertificateSummaryList | selectattr('DomainName','equalto', '*.gaiahub.io') | map(attribute='CertificateArn') | list | first }}"
   when: "acm_result.rc == 0"
 
 - debug: msg="There is no issued certificate in aws acm, please check if certificate is expired and should be renewd."
