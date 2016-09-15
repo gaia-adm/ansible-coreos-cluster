@@ -1,4 +1,5 @@
-- name: create a new vpc
+# create new VPC
+- name: create a new VPC
   ec2_vpc:
     region: "{{ ec2_region }}"
     cidr_block: "{{ vpc_cidr_block }}"
@@ -8,29 +9,30 @@
     wait: true
   register: ec2_vpc_out
 
-# associate VPC with Bastion DNS
+# discover hosted zone for VPC
 - name: discover DNS zone
-  local_action: "command aws route53 list-hosted-zones-by-name --dns-name {{ vpc_dns_zone }} --max-items 2 --output json"
-  register: list_zones_result_out
-- set_fact:
-    dns_zone: "{{ list_zones_result_out.stdout | from_json | get_dns_zone(vpc_dns_zone + '.') }}"
-
+  route53_facts:
+    query: hosted_zone
+    hosted_zone_method: list_by_name
+    dns_name: "{{ vpc_dns_zone }}"
+  register: dns_zone
+# Fail if DNS hosted zone does not exist for VPC
 - name: Check DNS zone existence
   fail:
     msg: "Expected DNS zone was not found"
-  when: dns_zone == ""
+  when: "{{ dns_zone.HostedZones | length }} == 0"
 
+# associate VPC with Bastion DNS zone
 - name: associate VPC with Bastion DNS zone
-  local_action: "command aws route53 associate-vpc-with-hosted-zone --hosted-zone-id {{ dns_zone.Id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ ec2_vpc_out.vpc_id }} --output json"
+  route53_zone:
+    vpc_id: "{{ ec2_vpc_out.vpc_id }}"
+    vpc_region: "{{ ec2_region }}"
+    zone: "{{ dns_zone.HostedZones[0].Name }}"
+    state: present
 
-- name: get vpc id
+# get VPC facts: id, private and public subnets
+- name: get VPC facts
   set_fact:
     vpc_id: "{{ ec2_vpc_out.vpc_id }}"
-
-- name: get vpc private subnets
-  set_fact:
     vpc_private_subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private') }}"
-
-- name: get vpc public subnets
-  set_fact:
     vpc_public_subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'public') }}"

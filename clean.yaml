@@ -97,18 +97,22 @@
       - { name: "{{ coreos_lc_name }}", type: "{{ coreos_instance_type }}" }
       - { name: "{{ etcd_lc_name }}", type: "{{ etcd_instance_type }}" }
 
-  # disassociate VPC from Bastion DNS
+  # discover hosted zone for VPC
   - name: discover DNS zone
-    local_action: "command aws route53 list-hosted-zones-by-name --dns-name {{ vpc_dns_zone }} --max-items 2 --output json"
-    register: list_zones_result_out
-  - set_fact:
-      dns_zone: "{{ list_zones_result_out.stdout | from_json | get_dns_zone(vpc_dns_zone + '.') }}"
-  - name: Check DNS zone existence
-    fail:
-      msg: "Expected DNS zone was not found"
-    when: dns_zone == ""
-  - name: disassociate VPC from Bastion DNS zone
-    local_action: "command aws route53 disassociate-vpc-from-hosted-zone --hosted-zone-id {{ dns_zone.Id }} --vpc VPCRegion={{ ec2_region }},VPCId={{ vpc.vpc_id }} --output json"
+    route53_facts:
+      query: hosted_zone
+      hosted_zone_method: list_by_name
+      dns_name: "{{ vpc_dns_zone }}"
+    register: dns_zone
+
+  # deassociate VPC with Bastion DNS zone
+  - name: deassociate VPC with Bastion DNS zone
+    route53_zone:
+      vpc_id: "{{ vpc.vpc_id }}"
+      vpc_region: "{{ ec2_region }}"
+      zone: "{{ dns_zone.HostedZones[0].Name }}"
+      state: absent
+    when: "{{ dns_zone.HostedZones | length }} > 0"
     ignore_errors: yes
 
   # delete public subdomain recordset in route53 gaiahub.io hosted zone
@@ -144,8 +148,6 @@
       value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
     when: elb_fact != ""
     ignore_errors: yes
-
-
 
   # delete coreos ELB
   - name: delete coreos ELB

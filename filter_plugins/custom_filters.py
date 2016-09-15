@@ -19,10 +19,6 @@ def get_subnets(value, tag_key, tag_value, return_key='id'):
 
     return subnets
 
-def get_dns_zone(value, zone_name):
-    for zone in value['HostedZones']:
-        if zone['Name'] == zone_name:
-            return zone
 
 def get_hosted_zone_id(value):
     default_region=os.environ['AWS_DEFAULT_REGION']
