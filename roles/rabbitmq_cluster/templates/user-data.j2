@@ -109,6 +109,10 @@ coreos:
         Requires=etcd2.service
         [Service]
         ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{ "Network": "{{ coreos_flannel_cidr_block }}", "Backend": {"Type": "aws-vpc"} }'
+    - name: 90-log-location-config.conf
+      content: |
+        [Service]
+        Environment="TMPDIR=/tmp/"
   - name: etcd2.service
     command: start
   - name: fleet.service
