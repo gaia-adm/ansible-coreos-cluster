@@ -85,7 +85,7 @@ coreos:
       ExecStartPre=/usr/bin/systemctl set-environment AWS_SECRET_KEY={{ coreos_aws_secret_key }}
       ExecStartPre=/usr/bin/systemctl set-environment ENVIRON_LOCATION=amazon
       ExecStartPre=/usr/bin/systemctl set-environment DATADOG_API_KEY={{ datadog_api_key }}
-	  ExecStartPre=/usr/bin/systemctl set-environment DOMAIN={{ dns }}.gaiahub.io
+      ExecStartPre=/usr/bin/systemctl set-environment DOMAIN={{ dns }}.gaiahub.io
       ExecStart=/usr/bin/systemctl set-environment ENVIRON={{ environ | default("develop") }}
       [Install]
       WantedBy=multi-user.target
