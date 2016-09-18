@@ -86,22 +86,22 @@
     sort_end: 1
     no_result_action: fail
   register: find_out
-- name: get CoreOS AMI for RabbitMQ
+- name: get CoreOS AMI for Elasticsearch
   set_fact:
     elasticsearch_ami: "{{ find_out.results[0] }}"
 
 # using JSON file as a workaround for Ansible bug: https://github.com/ansible/ansible/issues/9362
-- name: create internal RabbitMQ volume json template
+- name: create internal Elasticsearch volume json template
   template: src='volume.j2' dest='/tmp/elasticsearch_volume.json'
 
-# create RabbitMQ launch configuration
+# create Elasticsearch launch configuration
 # note: for flannel use manually create role with required pilicies
 #       https://coreos.com/flannel/docs/latest/vpc-backend.html
-- name: create RabbitMQ  launch configuration
+- name: create Elasticsearch  launch configuration
   shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ elasticsearch_lc_name }}' --key-name '{{ coreos_keypair_name }}' --image-id '{{ elasticsearch_ami.ami_id }}' --security-groups '{{ elasticsearch_sg.group_id }}' --instance-type '{{ elasticsearch_instance_type }}' --iam-instance-profile '{{ coreos_instance_profile }}' --user-data 'file:///tmp/elasticsearch-data.txt' --block-device-mappings 'file:///tmp/elasticsearch_volume.json'"
 
-# create RabbitMQ autoscale group
-- name: create RabbitMQ autoscale group
+# create Elasticsearch autoscale group
+- name: create Elasticsearch autoscale group
   ec2_asg:
     name: "{{ elasticsearch_asg_name }}"
     region: "{{ ec2_region }}"
@@ -118,4 +118,3 @@
 - name: Turn off "source destination check" - needed for flunnel
   local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ item }} --no-source-dest-check
   with_items: "{{ elasticsearch_asg_out.instances }}"
-
