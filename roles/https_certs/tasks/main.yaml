@@ -2,15 +2,29 @@
 - name: Create keys/region directory
   file: path=keys/ state=directory mode=0700
 
+# create SkyDNS CA key, if not exists
+- stat: path=keys/skydns_local.key
+  register: skydns_key
 - name: create skydns.local CA key
   shell: "openssl genrsa -out keys/skydns_local.key 2048"
   args:
     creates: "keys/skydns_local.key"
+  when: not skydns_key.stat.exists
+
+# create SkyDNS CA Certificate Request, if not exists
+- stat: path=keys/skydns_local.csr
+  register: skydns_csr
 - name: create skydns.local CA csr
   shell: "openssl req -sha256 -new -subj {{ skydns_ca_subj }} -key keys/skydns_local.key -out keys/skydns_local.csr"
   args:
     creates: "keys/skydns_local.csr"
+  when: not skydns_csr.stat.exists
+
+# create SkyDNS CA Certificate, if not exists
+- stat: path=keys/skydns_local.crt
+  register: skydns_crt
 - name: create skydns.local CA crt
   shell: "openssl x509 -days 3650 -signkey keys/skydns_local.key -in keys/skydns_local.csr -req -out keys/skydns_local.crt"
   args:
     creates: "keys/skydns_local.crt"
+  when: not skydns_crt.stat.exists

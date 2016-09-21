@@ -25,6 +25,7 @@
 
     # generate CA https certificate for skydns.local, it must be included in CoreOS
     - role: https_certs
+      tags: [ 'dev' ]
 
     # generate GPG keyrings for data encryption
     - role: gpg_keyrings
