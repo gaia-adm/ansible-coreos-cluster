@@ -17,16 +17,18 @@
       keypair_region: "{{ ec2_region }}"
       keypair_name: "{{ etcd_keypair_name }}"
       keypair_file: "{{ etcd_keypair_file }}"
+      tags: [ install ]
 
     # generate coreos key pair
     - role: keygen
       keypair_region: "{{ ec2_region }}"
       keypair_name: "{{ coreos_keypair_name }}"
       keypair_file: "{{ coreos_keypair_file }}"
+      tags: [ install ]
 
     # generate GPG keyrings for data encryption
     - role: gpg_keyrings
-      tags: ['dev']
+      tags: [ install ]
 
     # create a new VPC
     - role: vpc

@@ -19,11 +19,10 @@ do
   shift
 done
 
-ansible-playbook --extra-vars "environ=$env dns=$dns" clean.yaml $vflag
+ansible-playbook --extra-vars "environ=$env dns=$dns" clean.yaml --tags=clean $vflag
 
 end=$(date +%s)
 duration=$(( $end - $start ))
 dur_min=$(( $duration/60 ))
 dur_sec=$(( $duration%60 ))
 echo Duration: $duration seconds \($dur_min minutes and $dur_sec seconds\)
-

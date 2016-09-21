@@ -1,0 +1,246 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+  - group_vars/vpc.yaml
+  - group_vars/etcd_cluster.yaml
+  - group_vars/coreos_cluster.yaml
+  - group_vars/rds.yaml
+  - group_vars/rabbitmq_cluster.yaml
+  - group_vars/elasticsearch_cluster.yaml
+
+  roles:
+
+    # delete volumes for coreos cluster
+    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-1-{{ environ }}", when: 0 < elasticsearch_cluster_size }
+    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-2-{{ environ }}", when: 1 < elasticsearch_cluster_size }
+    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-3-{{ environ }}", when: 2 < elasticsearch_cluster_size }
+    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-1-{{ environ }}", when: 0 < rabbitmq_cluster_size }
+    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-2-{{ environ }}", when: 1 < rabbitmq_cluster_size }
+    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-3-{{ environ }}", when: 2 < rabbitmq_cluster_size }
+    - { role: delete_volume,  volume: "{{ result_upload_volume }}", volume_name: "result-upload-{{ environ }}" }
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+  - group_vars/vpc.yaml
+  - group_vars/etcd_cluster.yaml
+  - group_vars/coreos_cluster.yaml
+  - group_vars/rds.yaml
+  - group_vars/rabbitmq_cluster.yaml
+  - group_vars/elasticsearch_cluster.yaml
+
+  tasks:
+  # find vpc id
+  - name: find vpc id
+    ec2_vpc:
+      region: "{{ ec2_region }}"
+      cidr_block: "{{ vpc_cidr_block }}"
+      resource_tags: "{{ vpc_resource_tags }}"
+      internet_gateway: "{{ vpc_internet_gateway|string }}"
+      subnets: "{{ vpc_subnets }}"
+      wait: true
+    register: vpc
+
+  # delete NAT gateway & Elastic IP
+  - name: get vpc public subnets
+    set_fact:
+      vpc_public_subnets_full: "{{ vpc.subnets | get_subnets('tier', 'public') }}"
+
+  - name: get NAT gateways using subnet id
+    shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ vpc_public_subnets_full[0] }}"
+    register: nat_gateways
+  - set_fact:
+      nat_gateways_info: "{{ nat_gateways.stdout | from_json }}"
+
+  - name: delete NAT gateways
+    shell: "aws ec2 delete-nat-gateway --nat-gateway-id {{ nat_gateways_info.NatGateways[0].NatGatewayId }}"
+    ignore_errors: yes
+    when: nat_gateways_info.NatGateways | length > 0
+
+  - name: wait until NAT gateway deleted
+    shell: "aws ec2 describe-nat-gateways --nat-gateway-ids {{ nat_gateways_info.NatGateways[0].NatGatewayId }}"
+    register: nat_gateway_to_delete
+    until: nat_gateway_to_delete.stdout.find( '\"deleted\"' ) != -1
+    retries: 30
+    delay: 5
+    when: nat_gateways_info.NatGateways | length > 0
+
+  - name: delete elastic ip (can't be deleted before NAT gateway)
+    shell: "aws ec2 release-address --allocation-id {{ nat_gateways_info.NatGateways[0].NatGatewayAddresses[0].AllocationId }}"
+    ignore_errors: yes
+    when: nat_gateways_info.NatGateways | length > 0
+
+  - name: remove autoscale groups for coreos, rabbitmq, elasticsearch and etcd
+    ec2_asg:
+      region: "{{ ec2_region }}"
+      name: "{{ item.name }}"
+      launch_config_name: "{{ item.lc_name }}"
+      state: absent
+    with_items:
+      - { name: "{{ etcd_asg_name }}", lc_name: "{{ etcd_lc_name }}" }
+      - { name: "{{ rabbitmq_asg_name }}", lc_name: "{{ rabbitmq_lc_name }}" }
+      - { name: "{{ elasticsearch_asg_name }}", lc_name: "{{ elasticsearch_lc_name }}" }
+      - { name: "{{ coreos_asg_name }}", lc_name: "{{ coreos_lc_name }}" }
+
+  - name: remove launch configurations for coreos, rabbitmq, elasticsearch and etcd
+    ec2_lc:
+      region: "{{ ec2_region }}"
+      name: "{{ item.name }}"
+      instance_type: "{{ item.type }}"
+      state: absent
+    with_items:
+      - { name: "{{ rabbitmq_lc_name }}", type: "{{ rabbitmq_instance_type }}" }
+      - { name: "{{ elasticsearch_lc_name }}", type: "{{ elasticsearch_instance_type }}" }
+      - { name: "{{ coreos_lc_name }}", type: "{{ coreos_instance_type }}" }
+      - { name: "{{ etcd_lc_name }}", type: "{{ etcd_instance_type }}" }
+
+  # discover hosted zone for VPC
+  - name: discover DNS zone
+    route53_facts:
+      query: hosted_zone
+      hosted_zone_method: list_by_name
+      dns_name: "{{ vpc_dns_zone }}"
+    register: dns_zone
+
+  # delete public subdomain recordset in route53 gaiahub.io hosted zone
+  - name: obtain alias hosted zone id
+    set_fact:
+      id: "{{ hz_ids | get_hosted_zone_id() }}"
+  - name: get ELB details
+    local_action: command aws elb describe-load-balancers --load-balancer-names coreos-elb-dev --max-items 1 --output json
+    register: elb_fact_out
+    ignore_errors: yes
+  - name: prepare ELB fact
+    set_fact:
+      elb_fact: "{{ elb_fact_out.stdout }}"
+  - name: delete route53 subdomain for environment
+    route53:
+      command: delete
+      zone:  gaiahub.io
+      record: "{{ dns }}.gaiahub.io"
+      type: A
+      alias: True
+      alias_hosted_zone_id: "{{ id }}"
+      value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
+    when: elb_fact != ""
+    ignore_errors: yes
+  - name: delete route53 4th level domain for webhooks
+    route53:
+      command: delete
+      zone:  gaiahub.io
+      record: "webhook.{{ dns }}.gaiahub.io"
+      type: A
+      alias: True
+      alias_hosted_zone_id: "{{ id }}"
+      value: "dualstack.{{ elb_fact.LoadBalancerDescriptions[0].CanonicalHostedZoneName }}"
+    when: elb_fact != ""
+    ignore_errors: yes
+
+  # delete coreos ELB
+  - name: delete coreos ELB
+    ec2_elb_lb:
+      name: "{{ coreos_elb_name }}"
+      state: absent
+      region: "{{ ec2_region }}"
+    ignore_errors: yes
+    register: delElbRes
+    until: delElbRes.elb.status == "gone"
+    retries: 5
+    delay: 10
+  - name: check if ELB deletion is not completed yet
+    local_action: command aws elb describe-load-balancers --load-balancer-names {{ coreos_elb_name }} --max-items 1 --output json
+    register: checkElbDeletion
+    ignore_errors: yes
+    until: checkElbDeletion.rc != 0
+    retries: 5
+    delay: 10
+
+  # delete ELB self-signed certificate
+  - name: delete self-signed certificate for ELB
+    local_action: command aws iam delete-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }}
+    ignore_errors: yes
+
+  # Delete RDS stuff: DB subnet group, security group and DB instances; final snapshot is NOT taken
+  - name: check Postgres existence
+    rds:
+      command: facts
+      instance_name: "{{ postgres_name }}"
+      region: "{{ ec2_region }}"
+    register: dbf
+    ignore_errors: yes
+  - set_fact:
+      rds_ep: "{{ dbf.instance.endpoint }}"
+    when: dbf|success
+  - debug: var=rds_ep
+  - name: Delete Route53 record set for postgres
+    route53:
+      command: delete
+      private_zone: True
+      zone: "{{ vpc_dns_zone }}"
+      record: "postgres.{{ vpc_dns_zone }}"
+      type: CNAME
+      value: "{{ rds_ep }}"
+      ttl: "{{ rds_posgres_ep_ttl }}"
+    when: dbf|success
+  - name: Delete RDS
+    rds:
+      command: delete
+      region: "{{ ec2_region }}"
+      instance_name: "{{ postgres_name }}"
+      wait: yes
+      wait_timeout: 900
+    when: dbf|success
+    ignore_errors: true
+      #  snapshot: "{{ postgres_name }}-snapshot"
+  - name: Delete RDS subnet group
+    rds_subnet_group:
+      region: "{{ ec2_region }}"
+      state: absent
+      name: "postgres-{{ environ }}-{{ dns }}-subnet-group"
+
+
+  # delete security groups
+  - name: delete all vpc security groups
+    ec2_group:
+      region: "{{ ec2_region }}"
+      name: "{{ item.name }}"
+      description: "{{ item.description }}"
+      vpc_id: "{{ vpc.vpc_id }}"
+      state: absent
+    with_items:
+      - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
+      - { name: "{{ rds_security_group.name }}", description: "{{ rds_security_group.desc }}"}
+      - { name: "{{ rabbitmq_security_group.name }}", description: "{{ rabbitmq_security_group.desc }}"}
+      - { name: "{{ elasticsearch_security_group.name }}", description: "{{ elasticsearch_security_group.desc }}"}
+      - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
+      - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}
+    ignore_errors: yes
+    register: deletedSG
+    until: deletedSG|success
+    retries: 5
+    delay: 10
+
+  - name: delete vpc peering
+    ec2_vpc_peering:
+      source_vpc: "{{ bastion_vpc_cidr_block }}"
+      dest_vpc: "{{ vpc.vpc_id }}"
+      region: "{{ ec2_region }}"
+      state: absent
+    ignore_errors: yes
+
+  - name: get bastion vpc route table
+    ec2_vpc_route_table_facts:
+      region: "{{ ec2_region }}"
+      filters:
+        tag:Name: "{{ bastion_vpc_rt_name }}"
+        tag:env: "{{ environ }}"
+    register: bastion_rts
+
+  - name: delete route from bastion route tables
+    local_action: command aws ec2 delete-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }}
+    with_items: "{{ bastion_rts.route_tables }}"
+    when: bastion_rts != ""
+    ignore_errors: true

@@ -30,4 +30,4 @@ vpc_subnets:
     resource_tags: { "Name": "private-2", "env": "{{ environ }}", "group": "gaia", "tier": "private"}
 
 # must match Bastion variable
-vpc_dns_zone: "gaia-{{ env_nick[environ] }}.{{ ec2_region }}.priv"
+vpc_dns_zone: "gaia-{{ env_nick[environ] }}.{{ ec2_region }}.priv."
