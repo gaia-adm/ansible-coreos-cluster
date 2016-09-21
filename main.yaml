@@ -17,18 +17,16 @@
       keypair_region: "{{ ec2_region }}"
       keypair_name: "{{ etcd_keypair_name }}"
       keypair_file: "{{ etcd_keypair_file }}"
+
     # generate coreos key pair
     - role: keygen
       keypair_region: "{{ ec2_region }}"
       keypair_name: "{{ coreos_keypair_name }}"
       keypair_file: "{{ coreos_keypair_file }}"
 
-    # generate CA https certificate for skydns.local, it must be included in CoreOS
-    - role: https_certs
-      tags: [ 'dev' ]
-
     # generate GPG keyrings for data encryption
     - role: gpg_keyrings
+      tags: ['dev']
 
     # create a new VPC
     - role: vpc
@@ -61,7 +59,7 @@
     - role: elasticsearch_cluster
 
     # setup network: VPC peering, NAT, route tables
-    - role: network
+    #- role: network
 
 - hosts: terminate-group
   connection: local

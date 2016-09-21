@@ -1,11 +1,52 @@
 # generate gaia GPG keyrings
-- name: Create keys/region directory
-  file: path=keys/ state=directory mode=0700
+---
+- name: create keys/region directory
+  file: path=keys/{{ ec2_region }} state=directory mode=0700
 
-- set_fact:
+- name: create .keys_region symlink to above directory
+  file: src=keys/{{ ec2_region }} dest=.keys_region state=link
+
+- name: define workdir variable
+  set_fact:
     work_dir: "{{ lookup('env', 'PWD') }}"
 
-- name: create gaia GPG keyrings
+- name: define variables for gaia gpg files
+  set_fact:
+    gaia_secring_file_name: "keys/{{ ec2_region }}/gaia-secring.gpg"
+    gaia_pubring_file_name: "keys/{{ ec2_region }}/gaia-pubring.gpg"
+
+# generate gaia gpg files
+- name: search for existing gaia secring gpg file
+  stat:
+    path: "{{ gaia_secring_file_name }}"
+  register: gaia_secring_file
+- name: search for existing gaia pubring gpg file
+  stat:
+    path: "{{ gaia_pubring_file_name }}"
+  register: gaia_pubring_file
+- name: create gaia GPG keyrings, if needed
   shell: "gpg2 --batch --armor --gen-key {{ work_dir }}/roles/gpg_keyrings/files/gaia_gpg.batch"
   args:
-    creates: "keys/gaia-secring.gpg"
+    creates: "keys/{{ ec2_region }}/gaia-secring.gpg"
+  when: (not gaia_secring_file.stat.exists) or (not gaia_pubring_file.stat.exists)
+
+# read gaia-secring.gpg content from file
+- name: read gaia-secring.gpg content from file
+  shell: "openssl enc -base64 -A -in {{ gaia_secring_file_name }}"
+  register: gaia_secring_content_out
+  changed_when: false
+
+# resiter gaia-secring.gpg as variable
+- name: register gaia-secring.gpg content as variable
+  set_fact:
+    gaia_secring_content: "{{ gaia_secring_content_out.stdout }}"
+
+# read gaia-pubring.gpg content from file
+- name: read gaia-pubring.gpg content from file
+  shell: "openssl enc -base64 -A -in {{ gaia_pubring_file_name }}"
+  register: gaia_pubring_content_out
+  changed_when: false
+
+# resiter gaia-pubring.gpg as variable
+- set_fact:
+    gaia_pubring_content: "{{ gaia_pubring_content_out.stdout }}"

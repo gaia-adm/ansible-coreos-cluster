@@ -44,7 +44,6 @@ class FilterModule(object):
         return {
             'ec2_instance_info': ec2_instance_info,
             'get_subnets': get_subnets,
-            'get_dns_zone': get_dns_zone,
             'get_hosted_zone_id': get_hosted_zone_id,
             'has_volume_state': has_volume_state,
             'get_rds_endpoint': get_rds_endpoint

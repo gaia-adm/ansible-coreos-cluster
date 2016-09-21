@@ -28,34 +28,6 @@
 - set_fact:
     gaia_ca_key_content: "{{ gaia_ca_key_content_out.stdout }}"
 
-# gaia-pubring.gpg content
-- set_fact:
-    gaia_pubring_file: "keys/gaia-pubring.gpg"
-- stat:
-    path: "{{ gaia_pubring_file }}"
-  register: st_out
-- fail:
-    msg: "Missing {{ gaia_pubring_file }} file"
-  when: st_out.stat.exists != True
-- shell: "openssl enc -base64 -A -in {{ gaia_pubring_file }}"
-  register: gaia_pubring_content_out
-- set_fact:
-    gaia_pubring_content: "{{ gaia_pubring_content_out.stdout }}"
-
-# gaia-secring.gpg content
-- set_fact:
-    gaia_secring_file: "keys/gaia-secring.gpg"
-- stat:
-    path: "{{ gaia_secring_file }}"
-  register: st_out
-- fail:
-    msg: "Missing {{ gaia_secring_file }} file"
-  when: st_out.stat.exists != True
-- shell: "openssl enc -base64 -A -in {{ gaia_secring_file }}"
-  register: gaia_secring_content_out
-- set_fact:
-    gaia_secring_content: "{{ gaia_secring_content_out.stdout }}"
-
 - name: Create the security group for the RabbitMQ cluster
   ec2_group:
     name: "{{ rabbitmq_security_group.name }}"
@@ -118,4 +90,3 @@
 - name: Turn off "source destination check" - needed for flunnel
   local_action: command aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ item }} --no-source-dest-check
   with_items: "{{ rabbitmq_asg_out.instances }}"
-

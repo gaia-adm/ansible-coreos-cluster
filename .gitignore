@@ -5,5 +5,6 @@
 .ssh_config
 keys
 keys/
+.keys_region
 .idea
 .tunnel_*.sh

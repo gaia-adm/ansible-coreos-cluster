@@ -3,6 +3,8 @@
 bastion_vpc_cidr_block: "{{ bastion_cidr_block[environ] }}"
 bastion_vpc_rt_name: bastion-rt
 
+vpc_peer_tags: { "Name": "bastion-gaia", "env": "{{ environ }}", "group": "gaia" }
+
 # VPC variables
 vpc_cidr_block: "{{ cidr_block[environ] }}"
 vpc_internet_gateway: "yes"
