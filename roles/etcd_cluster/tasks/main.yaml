@@ -1,4 +1,4 @@
-- debug: var=vpc_id
+---
 
 - name: Create the security group for the etcd cluster
   ec2_group:
@@ -21,28 +21,13 @@
     # user_data: "{{ lookup('file', '/tmp/user-data.txt') | b64encode }}" <-- base64 encoded user-data is not recognized by CoreOS
     user_data: "{{ lookup('file', '/tmp/user-data.txt') }}"
 
-# search for latest CoreOS AMI from alpha/beta/stable channel
-- name: search for the latest CoreOS AMI image from "{{ coreos_channel }}"
-  ec2_ami_find:
-    region: "{{ ec2_region }}"
-    name: "CoreOS-{{coreos_channel}}-{{coreos_version}}-hvm"
-    virtualization_type: hvm
-    sort: name
-    sort_order: descending
-    sort_end: 1
-    no_result_action: fail
-  register: find_out
-- name: get CoreOS AMI
-  set_fact:
-    etcd_ami: "{{ find_out.results[0] }}"
-
 # using JSON file as a workaround for Ansible bug: https://github.com/ansible/ansible/issues/9362
 - name: create etcd volume json template
   template: src='volume.j2' dest='/tmp/etcd_volume.json'
 
 # create etcd launch configuration
 - name: create etcd launch configuration
-  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ etcd_lc_name }}' --key-name '{{ etcd_keypair_name }}' --image-id '{{ etcd_ami.ami_id }}' --security-groups '{{ etcd_sg.group_id }}' --instance-type '{{ etcd_instance_type }}' --user-data 'file:///tmp/user-data.txt' --block-device-mappings 'file:///tmp/etcd_volume.json'"
+  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ etcd_lc_name }}' --key-name '{{ etcd_keypair_name }}' --image-id '{{ coreos_ami.ami_id }}' --security-groups '{{ etcd_sg.group_id }}' --instance-type '{{ etcd_instance_type }}' --user-data 'file:///tmp/user-data.txt' --block-device-mappings 'file:///tmp/etcd_volume.json'"
 
 # create etcd autoscale group
 - name: create etcd autoscale group

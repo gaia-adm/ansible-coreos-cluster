@@ -48,21 +48,6 @@
     # user_data: "{{ lookup('file', '/tmp/elasticsearch-data.txt') | b64encode }}" <-- base64 encoded user-data is not recognized by CoreOS
     user_data: "{{ lookup('file', '/tmp/elasticsearch-data.txt') }}"
 
-# search for latest CoreOS AMI from alpha/beta/stable channel
-- name: search for the latest CoreOS AMI image from "{{ coreos_channel }}"
-  ec2_ami_find:
-    region: "{{ ec2_region }}"
-    name: "CoreOS-{{coreos_channel}}-{{coreos_version}}-hvm"
-    virtualization_type: hvm
-    sort: name
-    sort_order: descending
-    sort_end: 1
-    no_result_action: fail
-  register: find_out
-- name: get CoreOS AMI for Elasticsearch
-  set_fact:
-    elasticsearch_ami: "{{ find_out.results[0] }}"
-
 # using JSON file as a workaround for Ansible bug: https://github.com/ansible/ansible/issues/9362
 - name: create internal Elasticsearch volume json template
   template: src='volume.j2' dest='/tmp/elasticsearch_volume.json'
@@ -71,7 +56,7 @@
 # note: for flannel use manually create role with required pilicies
 #       https://coreos.com/flannel/docs/latest/vpc-backend.html
 - name: create Elasticsearch  launch configuration
-  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ elasticsearch_lc_name }}' --key-name '{{ coreos_keypair_name }}' --image-id '{{ elasticsearch_ami.ami_id }}' --security-groups '{{ elasticsearch_sg.group_id }}' --instance-type '{{ elasticsearch_instance_type }}' --iam-instance-profile '{{ coreos_instance_profile }}' --user-data 'file:///tmp/elasticsearch-data.txt' --block-device-mappings 'file:///tmp/elasticsearch_volume.json'"
+  shell: "aws autoscaling create-launch-configuration --launch-configuration-name '{{ elasticsearch_lc_name }}' --key-name '{{ coreos_keypair_name }}' --image-id '{{ coreos_ami.ami_id }}' --security-groups '{{ elasticsearch_sg.group_id }}' --instance-type '{{ elasticsearch_instance_type }}' --iam-instance-profile '{{ coreos_instance_profile }}' --user-data 'file:///tmp/elasticsearch-data.txt' --block-device-mappings 'file:///tmp/elasticsearch_volume.json'"
 
 # create Elasticsearch autoscale group
 - name: create Elasticsearch autoscale group

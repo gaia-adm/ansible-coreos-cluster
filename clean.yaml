@@ -11,6 +11,7 @@
   - group_vars/rabbitmq_cluster.yaml
   - group_vars/elasticsearch_cluster.yaml
 
+  # clean everything in reverse (from main.yaml) order
   roles:
     # clean S3 resources
     - role: s3_config

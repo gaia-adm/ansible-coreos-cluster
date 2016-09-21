@@ -123,21 +123,6 @@
     # user_data: "{{ lookup('file', '/tmp/user-data.txt') | b64encode }}" <-- base64 encoded user-data is not recognized by CoreOS
     user_data: "{{ lookup('file', '/tmp/user-data.txt') }}"
 
-# search for latest CoreOS AMI from alpha/beta/stable channel
-- name: search for the latest CoreOS AMI image from "{{ coreos_channel }}"
-  ec2_ami_find:
-    region: "{{ ec2_region }}"
-    name: "CoreOS-{{coreos_channel}}-{{coreos_version}}-hvm"
-    virtualization_type: hvm
-    sort: name
-    sort_order: descending
-    sort_end: 1
-    no_result_action: fail
-  register: find_out
-- name: get CoreOS AMI
-  set_fact:
-    coreos_ami: "{{ find_out.results[0] }}"
-
 - name: create ELB
   ec2_elb_lb:
     name: "{{ coreos_elb_name }}"

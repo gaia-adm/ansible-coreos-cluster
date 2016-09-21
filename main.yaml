@@ -36,6 +36,10 @@
     # create S3 bucket
     - role: s3_config
 
+    # find CoreOS AMI from specified channel
+    - role: find_coreos_ami
+      tags: [ install ]
+
     # create etcd cluster (with autoscaling group)
     - role: etcd_cluster
 
@@ -61,7 +65,7 @@
     - role: elasticsearch_cluster
 
     # setup network: VPC peering, NAT, route tables
-    #- role: network
+    - role: network
 
 - hosts: terminate-group
   connection: local

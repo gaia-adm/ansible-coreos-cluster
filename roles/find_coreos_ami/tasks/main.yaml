@@ -1,0 +1,16 @@
+---
+# search for latest CoreOS AMI from alpha/beta/stable channel
+- name: search for the latest CoreOS AMI image from "{{ coreos_channel }}"
+  ec2_ami_find:
+    region: "{{ ec2_region }}"
+    name: "CoreOS-{{coreos_channel}}-{{coreos_version}}-hvm"
+    virtualization_type: hvm
+    sort: name
+    sort_order: descending
+    sort_end: 1
+    no_result_action: fail
+  register: find_out
+
+- name: keep first CoreOS AMI
+  set_fact:
+    coreos_ami: "{{ find_out.results[0] }}"
