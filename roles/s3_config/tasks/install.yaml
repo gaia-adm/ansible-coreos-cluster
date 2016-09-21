@@ -1,0 +1,6 @@
+---
+- name: create s3 gaia backup bucket
+  s3:
+    bucket: "gaia.backup-{{ dns }}-{{ environ }}-{{ ec2_region }}"
+    mode: create
+    region: "{{ ec2_region }}"
