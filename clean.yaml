@@ -12,5 +12,7 @@
   - group_vars/elasticsearch_cluster.yaml
 
   roles:
-    # clean a new VPC
+    # clean S3 resources
+    - role: s3_config
+    # clean VPC resources
     - role: vpc
