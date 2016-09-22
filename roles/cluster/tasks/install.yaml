@@ -37,6 +37,23 @@
     region: "{{ ec2_region }}"
   register: _lcs
 
+- name: check image id
+  debug: msg="{{_lcs.results[0].image_id == coreos_ami.ami_id}}"
+  when: _lcs.results|length > 0
+
+- name: check user-data
+  debug: msg="{{(_lcs.results[0].user_data | b64decode) == user_data}}"
+  when: _lcs.results|length > 0
+
+- name: check user-data
+  debug: msg="{{_lcs.results[0].instance_type == instance_type[cluster_type][environ]}}"
+  when: _lcs.results|length > 0
+
+- name: check keypair
+  debug: msg="{{_lcs.results[0].keyname == keypair_name[cluster_type]}}"
+  when: _lcs.results|length > 0
+
+
 # check if update/create is required, only if some check is different
 - name: init update flag to true
   set_fact:
@@ -115,7 +132,8 @@
 
 # turn off source destination check
 - name: turn off "source destination check" - needed for flannel
-  ec2:
-    region: "{{ ec2_region }}"
-    instance_ids: "{{ _asg.instances }}"
-    source_dest_check: false
+  shell: "aws ec2 modify-instance-attribute --region {{ ec2_region }} --instance-id {{ item }} --no-source-dest-check"
+  register: _result
+  failed_when: _result.rc != 0
+  changed_when: _result.rc == 0
+  with_items: "{{ _asg.instances }}"

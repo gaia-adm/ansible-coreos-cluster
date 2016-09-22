@@ -4,9 +4,9 @@
   gather_facts: False
   vars_files:
   - keys/credentials.yaml
-  - group_vars/vpc.yaml
-  - group_vars/coreos_cluster.yaml
+  - group_vars/elb.yaml
   - group_vars/rds.yaml
+  - group_vars/vpc.yaml
 
   # clean everything in reverse (from main.yaml) order
   roles:
@@ -20,6 +20,6 @@
     - role: cluster
       cluster_type: etcd
     # clean S3 resources
-    - role: s3_config
+    - role: s3
     # clean VPC resources
     - role: vpc

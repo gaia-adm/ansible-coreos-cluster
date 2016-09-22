@@ -12,6 +12,17 @@
 - name: Print RDS security group details
   debug: var=rds_sg
 
+# Add access to Postgres from coreos_security_group
+- name: find rds_sg
+  shell: "aws ec2 describe-security-groups --filters Name=group-name,Values='rds_sg_{{ env_nick[environ] }}'"
+  register: rds_sg_out
+- set_fact:
+    rds_sg_out_stdout: "{{ rds_sg_out.stdout | from_json }}"
+- debug: var=rds_sg_out_stdout.SecurityGroups[0].GroupId
+- name: add rule
+  shell: "aws ec2 authorize-security-group-ingress --group-id {{ rds_sg_out_stdout.SecurityGroups[0].GroupId }} --protocol tcp --port 5432 --source-group {{ coreos_sg.group_id }}"
+
+
 # Subnet for RDS
 - name: Find subnet for RDS
   shell: "aws ec2 describe-subnets --filters Name=tag:Name,Values=private-1"
@@ -134,3 +145,14 @@
     ttl: "{{ rds_posgres_ep_ttl }}"
 - set_fact:
     POSTGRES_EP_OUT: "postgres.{{ vpc_dns_zone }}"
+
+# Check if DB is available
+- name: check Postgres availability
+  rds:
+    command: facts
+    instance_name: "{{ postgres_name }}"
+    region: "{{ ec2_region }}"
+  register: dbf
+  until: dbf.instance.status == "available"
+  retries: 15
+  delay: 60

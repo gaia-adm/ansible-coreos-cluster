@@ -4,9 +4,9 @@
   gather_facts: False
   vars_files:
   - keys/credentials.yaml
-  - group_vars/vpc.yaml
-  - group_vars/coreos_cluster.yaml
+  - group_vars/elb.yaml
   - group_vars/rds.yaml
+  - group_vars/vpc.yaml
 
   roles:
     # generate etcd key pair
@@ -39,7 +39,7 @@
     - role: vpc
 
     # create S3 bucket
-    - role: s3_config
+    - role: s3
 
     # find CoreOS AMI from specified channel
     - role: find_coreos_ami
