@@ -67,9 +67,9 @@ instance_profile_name:
 load_balancers:
   coreos:
     - "{{ coreos_elb_name }}"
-  etcd: null
-  elasticsearch: null
-  rabbitmq: null
+  etcd: []
+  elasticsearch: []
+  rabbitmq: []
 
 instance_tags:
   coreos:

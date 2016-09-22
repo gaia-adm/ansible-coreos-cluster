@@ -13,8 +13,17 @@
     name: "{{ asg_name[cluster_type] }}"
     launch_config_name: "{{ item.name }}"
     state: absent
+  register: _asg
   with_items: "{{ _lcs.results }}"
   ignore_errors: true
+
+# attach load balancer to asg, if needed
+# - name: attach load balancer to asg, if needed
+#   shell: "aws autoscaling attach-load-balancer-target-groups --auto-scaling-group-name {{ _asg.name }} --target-group-arns"
+#   register: elb_attach
+#   failed_when: elb_attach.rc != 0
+#   changed_when: elb_attach.rc == 0
+#   when: load_balancers[cluster_type] | length > 0
 
 # delete  LC
 - name: remove all launch configurations for {{cluster_type}}

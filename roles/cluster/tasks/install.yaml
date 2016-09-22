@@ -83,7 +83,6 @@
     name: "{{ asg_name[cluster_type] }}"
     region: "{{ ec2_region }}"
     launch_config_name: "{{ _lc_name }}"
-    load_balancers: "{{ load_balancers[cluster_type] }}"
     health_check_period: "{{ health_check_period[cluster_type] }}"
     desired_capacity: "{{ cluster_size_desired_capacity[cluster_type] }}"
     min_size: "{{ cluster_min_size[cluster_type] }}"
@@ -96,6 +95,14 @@
     wait_timeout: 600
   register: _asg
   when: _update_lc
+
+# attach load balancer to asg, if needed
+# - name: attach load balancer to asg, if needed
+#   shell: "aws autoscaling attach-load-balancer-target-groups --auto-scaling-group-name {{ _asg.name }} --target-group-arns"
+#   register: elb_attach
+#   failed_when: elb_attach.rc != 0
+#   changed_when: elb_attach.rc == 0
+#   when: load_balancers[cluster_type] | length > 0
 
 # delete old LC if updated
 - name: delete old LC
