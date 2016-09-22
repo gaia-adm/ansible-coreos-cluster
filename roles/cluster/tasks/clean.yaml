@@ -1,0 +1,38 @@
+---
+# get all LC within current region with name prefix
+- name: find all {{cluster_type}} launch configurations in the region
+  ec2_lc_find:
+    name_regex: "{{ lc_name[cluster_type] + '*' }}"
+    region: "{{ ec2_region }}"
+  register: _lcs
+
+# delete ASG
+- name: remove autoscale groups for {{cluster_type}}
+  ec2_asg:
+    region: "{{ ec2_region }}"
+    name: "{{ asg_name[cluster_type] }}"
+    launch_config_name: "{{ item.name }}"
+    state: absent
+  with_items: "{{ _lcs.results }}"
+  ignore_errors: true
+
+# delete  LC
+- name: remove all launch configurations for {{cluster_type}}
+  ec2_lc:
+    region: "{{ ec2_region }}"
+    name: "{{ item.name }}"
+    instance_type: "{{ item.instance_type }}"
+    state: absent
+  with_items: "{{ _lcs.results }}"
+  ignore_errors: true
+
+# delete security groups
+- name: delete {{cluster_type}} security groups
+  ec2_group:
+    region: "{{ ec2_region }}"
+    name: "{{ security_group[cluster_type].name }}"
+    description: "{{ security_group[cluster_type].desc }}"
+    vpc_id: "{{ vpc_facts.vpcs[0].id }}"
+    state: absent
+  when: vpc_facts.vpcs|length > 0
+  ignore_errors: true

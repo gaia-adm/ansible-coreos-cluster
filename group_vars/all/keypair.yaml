@@ -1,0 +1,6 @@
+---
+coreos_keypair_name: "coreos-keypair-{{ env_nick[environ] }}"
+coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
+
+etcd_keypair_name: "etcd-keypair-{{ env_nick[environ] }}"
+etcd_keypair_file: "etcd-key-{{ env_nick[environ] }}.pem"

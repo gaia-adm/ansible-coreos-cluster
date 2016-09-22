@@ -1,0 +1,3 @@
+---
+# https server certificate
+gaia_ca_file: "ca.{{ vpc_dns_zone }}"

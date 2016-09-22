@@ -5,11 +5,8 @@
   vars_files:
   - keys/credentials.yaml
   - group_vars/vpc.yaml
-  - group_vars/etcd_cluster.yaml
   - group_vars/coreos_cluster.yaml
   - group_vars/rds.yaml
-  - group_vars/rabbitmq_cluster.yaml
-  - group_vars/elasticsearch_cluster.yaml
 
   roles:
     # generate etcd key pair
@@ -30,6 +27,14 @@
     - role: gpg_keyrings
       tags: [ install ]
 
+    # load content for gaia CA files
+    - role: https_certs
+      tags: [ install ]
+
+    # collect vpc facts
+    - role: vpc_facts
+      tags: [install]
+
     # create a new VPC
     - role: vpc
 
@@ -40,35 +45,49 @@
     - role: find_coreos_ami
       tags: [ install ]
 
+    # create etcd cluster (with autoscaling group): ATTENTION - this is First CoreOS cluster to create!!!
+    - role: cluster
+      cluster_type: etcd
+
     # create etcd cluster (with autoscaling group)
-    - role: etcd_cluster
+    - role: cluster
+      cluster_type: coreos
 
-    # create volumes for coreos cluster
-    - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-1-{{ environ }}", when: 0 < elasticsearch_cluster_size }
-    - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-2-{{ environ }}", when: 1 < elasticsearch_cluster_size }
-    - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-3-{{ environ }}", when: 2 < elasticsearch_cluster_size }
-    - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-1-{{ environ }}", when: 0 < rabbitmq_cluster_size }
-    - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-2-{{ environ }}", when: 1 < rabbitmq_cluster_size }
-    - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-3-{{ environ }}", when: 2 < rabbitmq_cluster_size }
-    - { role: create_volume,  volume: "{{ result_upload_volume }}", volume_name: "result-upload-{{ environ }}" }
+    #
+    # # create elasticsearch cluster (with autoscaling group)
+    # - role: cluster
+    #   cluster_type: elasticsearch
+    #
+    # # create rabbitmq cluster (with autoscaling group)
+    # - role: cluster
+    #   cluster_type: rabbitmq
 
-    # create RDS
-    - role: rds_config
+    # # create volumes for coreos cluster
+    # - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-1-{{ environ }}", when: 0 < elasticsearch_cluster_size }
+    # - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-2-{{ environ }}", when: 1 < elasticsearch_cluster_size }
+    # - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-3-{{ environ }}", when: 2 < elasticsearch_cluster_size }
+    # - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-1-{{ environ }}", when: 0 < rabbitmq_cluster_size }
+    # - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-2-{{ environ }}", when: 1 < rabbitmq_cluster_size }
+    # - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-3-{{ environ }}", when: 2 < rabbitmq_cluster_size }
+    # - { role: create_volume,  volume: "{{ result_upload_volume }}", volume_name: "result-upload-{{ environ }}" }
+    #
+    # # create RDS
+    # - role: rds_config
+    #
+    # # create coreos cluster (with autoscaling group): must run after etcd_cluster role
+    # - role: coreos_cluster
+    #
+    # # create RabbitMQ cluster near CoreOS cluster (same network and discovery URL, different autoscaling group)
+    # - role: rabbitmq_cluster
+    #
+    # # create Elasticsearch cluster near CoreOS cluster (same network and discovery URL, different autoscaling group)
+    # - role: elasticsearch_cluster
+    #
+    # # setup network: VPC peering, NAT, route tables
+    # - role: network
 
-    # create coreos cluster (with autoscaling group): must run after etcd_cluster role
-    - role: coreos_cluster
-
-    # create RabbitMQ cluster near CoreOS cluster (same network and discovery URL, different autoscaling group)
-    - role: rabbitmq_cluster
-
-    # create Elasticsearch cluster near CoreOS cluster (same network and discovery URL, different autoscaling group)
-    - role: elasticsearch_cluster
-
-    # setup network: VPC peering, NAT, route tables
-    - role: network
-
-- hosts: terminate-group
-  connection: local
-  gather_facts: False
-  roles:
-    - terminate
+# - hosts: terminate-group
+#   connection: local
+#   gather_facts: False
+#   roles:
+#     - terminate

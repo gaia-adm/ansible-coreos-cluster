@@ -5,14 +5,20 @@
   vars_files:
   - keys/credentials.yaml
   - group_vars/vpc.yaml
-  - group_vars/etcd_cluster.yaml
   - group_vars/coreos_cluster.yaml
   - group_vars/rds.yaml
-  - group_vars/rabbitmq_cluster.yaml
-  - group_vars/elasticsearch_cluster.yaml
 
   # clean everything in reverse (from main.yaml) order
   roles:
+    # collect vpc facts
+    - role: vpc_facts
+      tags: [clean]
+    # clean coreos cluster resources
+    - role: cluster
+      cluster_type: coreos
+    # clean etcd cluster resources
+    - role: cluster
+      cluster_type: etcd
     # clean S3 resources
     - role: s3_config
     # clean VPC resources

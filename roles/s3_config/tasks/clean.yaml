@@ -4,3 +4,4 @@
     bucket: "gaia.backup-{{ dns }}-{{ environ }}-{{ ec2_region }}"
     mode: delete
     region: "{{ ec2_region }}"
+  ignore_errors: true
