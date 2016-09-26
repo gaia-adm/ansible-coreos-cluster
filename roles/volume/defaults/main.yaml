@@ -1,0 +1,21 @@
+---
+# overwrite this number to create more than 1 volume
+number_of_volumes: 1
+
+es_volume:
+  name: es-{{ item }}-{{ environ }}
+  size: 80
+  type: gp2
+  tags: { "group": "gaia", "env": "{{ environ }}", "purpose": "elasticsearch" }
+
+rabbitmq_volume:
+  name: rabbitmq-{{ item }}-{{ environ }}
+  size: 20
+  type: gp2
+  tags: { "group": "gaia", "env": "{{ environ }}", "purpose": "rabbitmq" }
+
+result_upload_volume:
+  name: "result-upload-{{ environ }}"
+  size: 20
+  type: gp2
+  tags: { "group": "gaia", "env": "{{ environ }}", "purpose": "result-upload" }

@@ -7,8 +7,8 @@ rds_security_group:
       to_port: 65535
       group_name: "rds_sg_{{ env_nick[environ] }}"
     - proto: tcp
-      from_port: 0
-      to_port: 65535
+      from_port: 5432
+      to_port: 5432
       group_name: "coreos_sg_{{ env_nick[environ] }}"
     - proto: tcp
       from_port: 22

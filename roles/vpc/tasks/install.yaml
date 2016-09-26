@@ -29,3 +29,5 @@
     vpc_id: "{{ ec2_vpc_out.vpc_id }}"
     vpc_private_subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private') }}"
     vpc_public_subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'public') }}"
+    vpc_public_subnets_full: "{{ ec2_vpc_out.subnets | get_subnets_full('tier', 'public') }}"
+    vpc_private_subnets_full: "{{ ec2_vpc_out.subnets | get_subnets_full('tier', 'private') }}"

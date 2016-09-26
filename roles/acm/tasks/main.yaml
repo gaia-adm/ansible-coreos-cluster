@@ -1,42 +1,25 @@
 ---
-  # get current account id
-  - name: get user details
-    local_action: command aws iam get-user --output json
-    register: myuser
-  - set_fact:
-      myuser_out: "{{ myuser.stdout }}"
-  - debug: msg="Working on account {{ myuser_out.User.Arn[13:25] }} ..."
-
-  # try acquiring acm certificate (currently only exist for us-east-1)
-  - name: list acm certificates for our domain
-    shell: aws acm list-certificates --certificate-statuses ISSUED
-    ignore_errors: yes
+  # search for acm certificate
+  - name: list acm certificates
+    acm_facts:
+      region: "{{ ec2_region }}"
+      certificate_statuses: [ ISSUED ]
     register: acm_result
-  - set_fact:
-      certificate_summary_list: "{{ acm_result.stdout }}"
-  - name: set acm certificate var
+
+  # Fail if ACM certificate exists in selected region
+  - name: check ACM certificate existence
+    fail:
+      msg: "Expected to find ACM certificate in '{{ ec2_region }}' region. Please, issue new ACM certificate."
+    when: acm_result.certificates | length == 0
+
+  # get certificate for "*.gaiahub.io" domain
+  - name: select first certificate for the "*.gaiahub.io" domain
     set_fact:
-      certificate_arn: "{{ certificate_summary_list.CertificateSummaryList | selectattr('DomainName','equalto', '*.gaiahub.io') | map(attribute='CertificateArn') | list | first }}"
-    when: "acm_result.rc == 0"
+      certificate_arn: "{{ acm_result.certificates | selectattr('domain_name','equalto', '*.gaiahub.io') | map(attribute='arn') | list | first }}"
+    when: acm_result.certificates | length > 0
 
-  - debug: msg="There is no issued certificate in aws acm, please check if certificate is expired and should be renewd."
-    when: "acm_result.rc != 0"
-
-  - name: check if self-signed certificate for ELB already exists
-    local_action: command aws iam get-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }}
-    ignore_errors: yes
-    register: cert
-    when: "acm_result.rc != 0"
-
-  - name: create self-signed certificate for ELB
-    local_action: command openssl req -new -nodes -x509 -subj "/C=US/ST=California/L=Palo Alto/O=HP Enterprise/CN=*.{{ ec2_region }}.elb.amazonaws.com" -days 3650 -keyout keys/{{ ec2_region }}/elb.{{ ec2_region }}.key -out keys/{{ ec2_region }}/elb.{{ ec2_region }}.crt -extensions v3_ca creates=keys/{{ ec2_region }}/elb.{{ ec2_region }}.crt
-    when: "cert is defined and cert.rc != 0"
-
-  - name: upload self-signed certificate for ELB
-    local_action: command aws iam upload-server-certificate --server-certificate-name ELB_Certificate.{{ ec2_region }} --certificate-body file://keys/{{ ec2_region }}/elb.{{ ec2_region }}.crt --private-key file://keys/{{ ec2_region }}/elb.{{ ec2_region }}.key
-    when: "cert is defined and cert.rc != 0"
-
-  - name: set self-signed ssl certificate var if acm certificate not defined
-    set_fact:
-      certificate_arn: "arn:aws:iam::{{ myuser_out.User.Arn[13:25] }}:server-certificate/ELB_Certificate.{{ ec2_region }}"
+  # Fail if there is no ACM certificate assigned to "*.gaiahub.io"
+  - name: check "*.gaiahub.io" ACM certificate existence
+    fail:
+      msg: "Expected to find ACM certificate in '{{ ec2_region }}' region. Please, issue new ACM certificate."
     when: certificate_arn is not defined

@@ -1,11 +1,10 @@
 ---
 - hosts: localhost
   connection: local
-  gather_facts: False
+  gather_facts: false
   vars_files:
   - keys/credentials.yaml
   - group_vars/elb.yaml
-  - group_vars/rds.yaml
   - group_vars/vpc.yaml
 
   roles:
@@ -31,6 +30,14 @@
     - role: https_certs
       tags: [ install ]
 
+    # generate and DEX keys
+    - role: dex_keys
+      tags: [ install ]
+
+    # get "*.gaiahub.io" ACM certificate
+    - role: acm
+      tags: [ install ]
+
     # collect vpc facts
     - role: vpc_facts
       tags: [install]
@@ -38,8 +45,17 @@
     # create a new VPC
     - role: vpc
 
+    # setup network: vpc-peering, eip, nat
+    - role: network
+
+    # create new ELB
+    - role: elb
+
     # create S3 bucket
     - role: s3
+
+    # create RDS
+    - role: rds
 
     # find CoreOS AMI from specified channel
     - role: find_coreos_ami
@@ -53,24 +69,28 @@
     - role: cluster
       cluster_type: coreos
 
-    #
-    # # create elasticsearch cluster (with autoscaling group)
-    # - role: cluster
-    #   cluster_type: elasticsearch
-    #
-    # # create rabbitmq cluster (with autoscaling group)
-    # - role: cluster
-    #   cluster_type: rabbitmq
+    # create elasticsearch cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: elasticsearch
 
-    # # create volumes for coreos cluster
-    # - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-1-{{ environ }}", when: 0 < elasticsearch_cluster_size }
-    # - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-2-{{ environ }}", when: 1 < elasticsearch_cluster_size }
-    # - { role: create_volume,  volume: "{{ es_volume }}", volume_name: "es-3-{{ environ }}", when: 2 < elasticsearch_cluster_size }
-    # - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-1-{{ environ }}", when: 0 < rabbitmq_cluster_size }
-    # - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-2-{{ environ }}", when: 1 < rabbitmq_cluster_size }
-    # - { role: create_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-3-{{ environ }}", when: 2 < rabbitmq_cluster_size }
-    # - { role: create_volume,  volume: "{{ result_upload_volume }}", volume_name: "result-upload-{{ environ }}" }
-    #
+    # create rabbitmq cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: rabbitmq
+
+    # create volumes for elasticsearch cluster
+    - role: volume
+      volume: "{{ es_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.elasticsearch }}"
+
+    # create volumes for rabbitmq cluster
+    - role: volume
+      volume: "{{ rabbitmq_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.rabbitmq }}"
+
+    # create volumes for resul-upload cluster
+    - role: volume
+      volume: "{{ result_upload_volume }}"
+
     # # create RDS
     # - role: rds_config
     #

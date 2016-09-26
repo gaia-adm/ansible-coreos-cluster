@@ -1,0 +1,33 @@
+---
+elb_security_group:
+  name: "elb_sg_{{ env_nick[environ] }}"
+  desc: the security group for ELB
+  rules:
+    - proto: tcp
+      from_port: 80
+      to_port: 80
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 88
+      to_port: 88
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 443
+      to_port: 443
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 444
+      to_port: 444
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 1936
+      to_port: 1936
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 8083
+      to_port: 8083
+      cidr_ip: 0.0.0.0/0
+    - proto: tcp
+      from_port: 8086
+      to_port: 8086
+      cidr_ip: 0.0.0.0/0

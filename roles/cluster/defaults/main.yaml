@@ -9,7 +9,6 @@ coreos_flannel_cidr_block: 192.168.0.0/16
 #       https://coreos.com/blog/introducing-flannel-0.5.0-with-aws-and-gce/
 coreos_instance_profile: flannel-role
 
-
 keypair_name:
   coreos: "coreos-keypair-{{ env_nick[environ] }}"
   etcd: "etcd-keypair-{{ env_nick[environ] }}"

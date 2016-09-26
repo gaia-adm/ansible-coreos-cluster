@@ -5,7 +5,6 @@
   vars_files:
   - keys/credentials.yaml
   - group_vars/elb.yaml
-  - group_vars/rds.yaml
   - group_vars/vpc.yaml
 
   # clean everything in reverse (from main.yaml) order
@@ -13,13 +12,45 @@
     # collect vpc facts
     - role: vpc_facts
       tags: [clean]
+
+    # delete volumes for elasticsearch cluster
+    - role: volume
+      volume: "{{ es_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.elasticsearch }}"
+
+    # delete volumes for rabbitmq cluster
+    - role: volume
+      volume: "{{ rabbitmq_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.rabbitmq }}"
+
+    # create volumes for resul-upload cluster
+    - role: volume
+      volume: "{{ result_upload_volume }}"
+
+    # clean elasticsearch cluster resources
+    - role: cluster
+      cluster_type: elasticsearch
+
+    # clean rabbitmq cluster resources
+    - role: cluster
+      cluster_type: rabbitmq
+
     # clean coreos cluster resources
     - role: cluster
       cluster_type: coreos
+
     # clean etcd cluster resources
     - role: cluster
       cluster_type: etcd
+
+    # clean ELB resources
+    - role: elb
+
     # clean S3 resources
     - role: s3
+
+    # clean network resources: vpc-peering, eip, nat
+    - role: network
+
     # clean VPC resources
     - role: vpc

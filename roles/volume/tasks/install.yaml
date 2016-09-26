@@ -1,26 +1,35 @@
-# create volume
-- debug: msg="Working on volume {{ volume_name }} ..."
+# create new volume: io1 or other
 
-- name: "Create volume (non io1)"
-  shell: "aws ec2 create-volume --size {{ volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ volume.type }} --output json"
-  register: volume_out
+- name: create volume (no io1)
+  ec2_vol:
+    name: "{{ volume.name }}"
+    region: "{{ ec2_region }}"
+    volume_size: "{{ volume.size }}"
+    volume_type: "{{ volume.type }}"
+    zone: "{{ ec2_region_az1 }}"
+    state: present
+  register: volume_result
   when: volume.type != "io1"
-- set_fact:
-    volume_info: "{{ volume_out.stdout | from_json }}"
+  with_sequence: count="{{number_of_volumes}}"
+
+- name: create volume (io1)
+  ec2_vol:
+    name: "{{ volume.name }}"
+    iops: "{{ volume.iops }}"
+    region: "{{ ec2_region }}"
+    volume_size: "{{ volume.size }}"
+    volume_type: "{{ volume.type }}"
+    zone: "{{ ec2_region_az1 }}"
+    state: present
+  register: volume_result
   when: volume.type != "io1"
+  with_sequence: count="{{number_of_volumes}}"
 
-- name: "Create volume (io1)"
-  shell: "aws ec2 create-volume --size {{ volume.size }} --availability-zone '{{ ec2_region_az1 }}' --volume-type {{ volume.type }} --iops {{ volume.iops }} --output json"
-  register: volume_out
-  when: volume.type == "io1"
-- set_fact:
-    volume_info: "{{ volume_out.stdout | from_json }}"
-  when: volume.type == "io1"
-
-- name: "Tag volume"
+# tag created volume (for search and cleanup)
+- name: "tag created volume"
   ec2_tag:
     region: "{{ ec2_region }}"
-    resource: "{{ volume_info.VolumeId }}"
+    resource: "{{ item.volume_id }}"
     state: present
-    tags:
-      Name: "{{ volume_name }}"
+    tags: "{{ volume.tags }}"
+  with_items: volume_result.results

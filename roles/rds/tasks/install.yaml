@@ -1,0 +1,100 @@
+---
+# Security group for RDS
+- name: Create the security group for RDS
+  ec2_group:
+    name: "{{ rds_security_group.name }}"
+    description: "{{ rds_security_group.desc }}"
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ ec2_region }}"
+    rules: "{{ rds_security_group.rules }}"
+  register: rds_sg
+
+# Create DB subnet group from all private subnets in the region
+# Dataset is based on ec2_vpc_out so that only looks on the relevant VPC
+- name: Create RDS subnet group
+  rds_subnet_group:
+    region: "{{ ec2_region }}"
+    state: present
+    name: "postgres-{{ environ }}-{{ dns }}-subnet-group"
+    description: See the group name
+    subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private') }}"
+
+- name: create Postgres for production environment
+  rds:
+    command: create
+    db_engine: postgres
+    size: "{{ volume_size.rds[environ] }}"
+    iops: "{{ iops[environ] }}"
+    instance_type: "{{ instance_type.rds[environ] }}"
+    instance_name: "{{ postgres_name }}"
+    username: dex
+    password: dex_pass
+    db_name: dex_db
+    backup_retention: "{{ backup_retention[environ] }}"
+    engine_version: "{{ postgres_version }}"
+    upgrade: false
+    publicly_accessible: no
+    region: "{{ ec2_region }}"
+    subnet: "postgres-{{ environ }}-{{ dns }}-subnet-group"
+    vpc_security_groups: "{{ rds_sg.group_id }}"
+    wait: true
+    tags:
+      Environment: "{{ environ }}"
+  register: rds
+
+- name: update RDS to multi-zone for "production" env
+  rds:
+    command: modify
+    instance_name: "{{ postgres_name }}"
+    region: "{{ ec2_region }}"
+    wait: true
+    multi_zone: true
+  when: environ=="production"
+
+
+# Check if DB creation has started (availability is checked later)
+- name: check Postgres existence
+  rds:
+    command: facts
+    instance_name: "{{ postgres_name }}"
+    region: "{{ ec2_region }}"
+  register: dbf
+  ignore_errors: yes
+  until: dbf|success
+  retries: 30
+  delay: 10
+
+# Fetch endpoint; use aws cli because ansible returns the endpoint
+# only after the status switched to available - too long to wait
+- name: wait until the endpoint is ready (availability is checked later)
+  shell: "aws rds describe-db-instances --db-instance-identifier {{ postgres_name }}"
+  register: dbfacts
+  until: dbfacts.stdout.find("rds.amazonaws.com") != -1
+  retries: 90
+  delay: 10
+- set_fact:
+    rds_ep: "{{ dbfacts.stdout | from_json | get_rds_endpoint() }}"
+- debug: var=rds_ep
+
+- name: create Route53 record set for postgres
+  route53:
+    command: create
+    private_zone: True
+    zone: "{{ vpc_dns_zone }}"
+    record: "postgres.{{ vpc_dns_zone }}"
+    type: CNAME
+    value: "{{ rds_ep }}"
+    ttl: "{{ rds_posgres_ep_ttl }}"
+- set_fact:
+    POSTGRES_EP_OUT: "postgres.{{ vpc_dns_zone }}"
+
+# Check if DB is available
+- name: check Postgres availability
+  rds:
+    command: facts
+    instance_name: "{{ postgres_name }}"
+    region: "{{ ec2_region }}"
+  register: dbf
+  until: dbf.instance.status == "available"
+  retries: 15
+  delay: 60

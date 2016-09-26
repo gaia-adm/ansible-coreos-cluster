@@ -12,14 +12,6 @@
 
   roles:
 
-    # delete volumes for coreos cluster
-    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-1-{{ environ }}", when: 0 < elasticsearch_cluster_size }
-    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-2-{{ environ }}", when: 1 < elasticsearch_cluster_size }
-    - { role: delete_volume,  volume: "{{ es_volume }}", volume_name: "es-3-{{ environ }}", when: 2 < elasticsearch_cluster_size }
-    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-1-{{ environ }}", when: 0 < rabbitmq_cluster_size }
-    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-2-{{ environ }}", when: 1 < rabbitmq_cluster_size }
-    - { role: delete_volume,  volume: "{{ rabbitmq_volume }}", volume_name: "rabbitmq-3-{{ environ }}", when: 2 < rabbitmq_cluster_size }
-    - { role: delete_volume,  volume: "{{ result_upload_volume }}", volume_name: "result-upload-{{ environ }}" }
 
 - hosts: localhost
   connection: local
@@ -200,47 +192,3 @@
       region: "{{ ec2_region }}"
       state: absent
       name: "postgres-{{ environ }}-{{ dns }}-subnet-group"
-
-
-  # delete security groups
-  - name: delete all vpc security groups
-    ec2_group:
-      region: "{{ ec2_region }}"
-      name: "{{ item.name }}"
-      description: "{{ item.description }}"
-      vpc_id: "{{ vpc.vpc_id }}"
-      state: absent
-    with_items:
-      - { name: "{{ etcd_security_group.name }}" , description: "{{ etcd_security_group.desc }}"}
-      - { name: "{{ rds_security_group.name }}", description: "{{ rds_security_group.desc }}"}
-      - { name: "{{ rabbitmq_security_group.name }}", description: "{{ rabbitmq_security_group.desc }}"}
-      - { name: "{{ elasticsearch_security_group.name }}", description: "{{ elasticsearch_security_group.desc }}"}
-      - { name: "{{ coreos_security_group.name }}", description: "{{ coreos_security_group.desc }}"}
-      - { name: "{{ elb_security_group.name }}", description: "{{ elb_security_group.desc }}"}
-    ignore_errors: yes
-    register: deletedSG
-    until: deletedSG|success
-    retries: 5
-    delay: 10
-
-  - name: delete vpc peering
-    ec2_vpc_peering:
-      source_vpc: "{{ bastion_vpc_cidr_block }}"
-      dest_vpc: "{{ vpc.vpc_id }}"
-      region: "{{ ec2_region }}"
-      state: absent
-    ignore_errors: yes
-
-  - name: get bastion vpc route table
-    ec2_vpc_route_table_facts:
-      region: "{{ ec2_region }}"
-      filters:
-        tag:Name: "{{ bastion_vpc_rt_name }}"
-        tag:env: "{{ environ }}"
-    register: bastion_rts
-
-  - name: delete route from bastion route tables
-    local_action: command aws ec2 delete-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }}
-    with_items: "{{ bastion_rts.route_tables }}"
-    when: bastion_rts != ""
-    ignore_errors: true

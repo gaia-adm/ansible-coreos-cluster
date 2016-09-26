@@ -1,32 +1,34 @@
-# delete result_upload volume
-- debug: msg="Working on volume {{ volume_name }} ..."
+---
+- name: find volumes
+  ec2_vol_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      availability-zone: "{{ ec2_region_az1 }}"
+      volume-type: "{{ volume.type }}"
+      tag:Name: "{{ volume.name }}"
+      tag:group: "{{ volume.tags.group }}"
+      tag:env: "{{ volume.tags.env }}"
+      tag:purpose: "{{ volume.tags.purpose }}"
+  register: vol_facts
+  with_sequence: count="{{number_of_volumes}}"
 
-- name: "Find volume"
-  shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ volume_name }}' --output json"
-  register: volume_out
-- set_fact:
-    volume_info: "{{ volume_out.stdout | from_json }}"
+- debug: var=vol_facts
 
-- name: "Check we found no more than 1 volume"
-  fail:
-    msg: "Expected no more than 1 {{ volume_name }} volumes, found {{ volume_info.Volumes | length }}"
-  when: "{{ volume_info.Volumes | length }} > 1"
-
-- name: "Detach volume (forced)"
-  shell: "aws ec2 detach-volume --volume-id {{ volume_info.Volumes[0].VolumeId }} --force"
-  when: "{{ volume_info | has_volume_state('in-use') }}"
-
-- name: "Wait until volume is detached"
-  shell: "aws ec2 describe-volumes --filter 'Name=tag:Name,Values={{ volume_name }}' --output json"
-  when: "{{ volume_info | has_volume_state('in-use') }}"
-  register: volume_out
-  until: (volume_out and "available" in volume_out.stdout)
-  delay: 10
-  retries: 5
-
-- name: "Delete volume"
+- name: detach volumes
   ec2_vol:
-    id: "{{ volume_info.Volumes[0].VolumeId }}"
+    id: "{{ item.1.id }}"
+    instance: None
+  with_subelements:
+    - "{{vol_facts.results}}"
+    - volumes
+  ignore_errors: true
+
+- name: delete volumes
+  ec2_vol:
+    id: "{{ item.1.id }}"
     region: "{{ ec2_region }}"
     state: absent
-  when: "{{ volume_info.Volumes | length }} == 1"
+  with_subelements:
+    - "{{vol_facts.results}}"
+    - volumes
+  ignore_errors: true

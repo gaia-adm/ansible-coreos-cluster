@@ -1,0 +1,53 @@
+---
+# delete public subdomain recordset in route53 gaiahub.io hosted zone
+- name: get ELB facts
+  ec2_elb_facts:
+    region: "{{ ec2_region }}"
+    names: "{{ coreos_elb_name }}"
+  register: elb_facts
+  failed_when: elb_facts|failed and "LoadBalancerNotFound" not in elb_facts.msg
+  ignore_errors: yes
+
+- name: delete route53 subdomain for environment
+  route53:
+    command: delete
+    zone:  gaiahub.io
+    record: "{{ dns }}.gaiahub.io"
+    type: A
+    alias: True
+    alias_hosted_zone_id: "{{ item.canonical_hosted_zone_name_id }}"
+    value: "dualstack.{{ item.canonical_hosted_zone_name }}"
+  with_items: "{{ elb_facts.elbs }}"
+  when:
+    - elb_facts.elbs is defined
+    - elb_facts.elbs | length > 0
+  ignore_errors: yes
+
+- name: delete route53 4th level domain for webhooks
+  route53:
+    command: delete
+    zone:  gaiahub.io
+    record: "webhook.{{ dns }}.gaiahub.io"
+    type: A
+    alias: True
+    alias_hosted_zone_id: "{{ item.canonical_hosted_zone_name_id }}"
+    value: "dualstack.{{ item.canonical_hosted_zone_name }}"
+  with_items: "{{ elb_facts.elbs }}"
+  when:
+    - elb_facts.elbs is defined
+    - elb_facts.elbs | length > 0
+  ignore_errors: yes
+
+# delete coreos ELB
+- name: delete coreos ELB
+  ec2_elb_lb:
+    name: "{{ item.name }}"
+    region: "{{ ec2_region }}"
+    state: absent
+    wait: true
+    wait_timeout: 600
+  with_items: "{{ elb_facts.elbs }}"
+  when:
+    - elb_facts.elbs is defined
+    - elb_facts.elbs | length > 0
+  ignore_errors: yes

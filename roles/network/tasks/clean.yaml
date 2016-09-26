@@ -1,0 +1,63 @@
+---
+# delete NAT gateway & Elastic IP
+- name: get vpc public subnets
+  ec2_vpc_subnet_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      vpc-id: "{{ vpc_facts.vpcs[0].id }}"
+      tag:tier: public
+  register: vpc_subnet_facts
+  when: vpc_facts.vpcs|length > 0
+
+# get NAT gateway for subnet
+- name: get NAT gateway id using subnet id
+  shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ vpc_subnet_facts.subnets[0].id }}"
+  register: nat_gateway
+  changed_when: false
+  when:
+    - vpc_subnet_facts.subnets is defined
+    - vpc_subnet_facts.subnets | length > 0
+
+# var: nat_gateway_id
+- name: define nat_gateway_id
+  set_fact:
+    nat_gateway_info: "{{ nat_gateway.stdout | from_json }}"
+  when:
+    - nat_gateway is defined
+    - nat_gateway.stdout is defined
+
+- name: define nat_gateway_id
+  set_fact:
+    nat_gateway_id: "{{ nat_gateway_info.NatGateways[0].NatGatewayId }}"
+  when:
+    - nat_gateway_info is defined
+    - nat_gateway_info.NatGateways[0] is defined
+
+# var: nat_network_interface_id
+- name: define nat_network_interface_id
+  set_fact:
+    nat_network_interface_id: "{{ nat_gateway_info.NatGateways[0].NatGatewayAddresses[0].NetworkInterfaceId }}"
+  when:
+    - nat_gateway_info is defined
+    - nat_gateway_info.NatGateways[0] is defined
+    - nat_gateway_info.NatGateways[0].NatGatewayAddresses[0] is defined
+
+# delete NAT gateway
+- name: delete NAT gateways
+  ec2_vpc_nat_gateway:
+    state: absent
+    nat_gateway_id: "{{ nat_gateway_id }}"
+    release_eip: true
+    wait: true
+  when: nat_gateway_id is defined
+  ignore_errors: true
+
+# release EIP
+- name: disassociate Elastic IP
+  ec2_eip:
+    state: absent
+    region: "{{ ec2_region }}"
+    device_id: "{{ nat_network_interface_id }}"
+    release_on_disassociation: true
+  when: nat_network_interface_id is defined
+  ignore_errors: true

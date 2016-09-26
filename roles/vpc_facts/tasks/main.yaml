@@ -1,18 +1,35 @@
 ---
 # find vpc id
-- name: find bastion vpc
+- name: find gaia vpc
   ec2_vpc_net_facts:
     region: "{{ ec2_region }}"
     filters:
       cidr: "{{ vpc_cidr_block }}"
       tag:Name: gaia-vpc
+      tag:env: "{{ environ }}"
+      tag:group: gaia
   register: vpc_facts
 
-- name: set vpc-id variable
+- name: find bastion vpc
+  ec2_vpc_net_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      state: available
+      tag:Name: bastion
+      tag:env: "{{ environ }}"
+      tag:group: gaia
+  register: bastion_vpc_facts
+
+- name: set vpc_id variable
   set_fact:
     vpc_id: "{{ vpc_facts.vpcs[0].id }}"
-  when: vpc_facts.vpcs|length == 1
+  when: vpc_facts.vpcs | length == 1
 
+- name: set bastion_vpc_id variable
+  set_fact:
+    bastion_vpc_id: "{{ bastion_vpc_facts.vpcs[0].id }}"
+    bastion_vpc_cidr_block: "{{ bastion_vpc_facts.vpcs[0].cidr_block }}"
+  when: bastion_vpc_facts.vpcs | length == 1
 
 # discover hosted zone for VPC
 - name: discover DNS zone (should be created by bastion playbooks)

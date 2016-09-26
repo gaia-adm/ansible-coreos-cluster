@@ -1,0 +1,18 @@
+---
+# generate application security keys for further usage by Dex - should be in environment
+
+- name: generate dex admin api key
+  shell: "dd if=/dev/random bs=1 count=128 2>/dev/null | openssl base64 | tr -d '\n' > {{dex_api_secret_file}}"
+  args:
+    creates: "{{ dex_api_secret_file }}"
+- name: read DEX API SECRET file
+  set_fact:
+    DEX_API_SECRET: "{{ lookup('file', dex_api_secret_file) }}"
+
+- name: generate dex secret key
+  shell: "dd if=/dev/random bs=1 count=32 2>/dev/null | openssl base64 | tr -d '\n' > {{dex_secret_file}}"
+  args:
+    creates: "{{ dex_secret_file }}"
+- name: read DEX SECRET file
+  set_fact:
+    DEX_SECRET: "{{ lookup('file', dex_secret_file) }}"
