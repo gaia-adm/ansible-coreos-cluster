@@ -11,7 +11,8 @@ vpc_internet_gateway: "yes"
 
 vpc_resource_tags: { "Name": "gaia-vpc", "env": "{{ environ }}", "group": "gaia" }
 
-vpc_route_tables_tags: { "Name": "gaia-rt", "env": "{{ environ }}", "group": "gaia" }
+vpc_public_route_tables_tags: { "Name": "gaia-public-rt", "env": "{{ environ }}", "group": "gaia", "type": "public" }
+vpc_private_route_tables_tags: { "Name": "gaia-private-rt", "env": "{{ environ }}", "group": "gaia", "type": "private" }
 
 vpc_subnets:
   # public subnets

@@ -1,4 +1,6 @@
 ---
+elb_tags: { "env": "{{ environ }}", "group": "gaia" }
+
 elb_security_group:
   name: "elb_sg_{{ env_nick[environ] }}"
   desc: the security group for ELB

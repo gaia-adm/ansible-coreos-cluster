@@ -1,5 +1,6 @@
 ---
-
+# Create VPC peering: Bastion <-> Gaia
+#
 - name: create VPC peering to bastion vpc
   ec2_vpc_peer:
     vpc_id: "{{ vpc_id }}"
@@ -12,6 +13,14 @@
 - name: get vpc peering id
   set_fact:
     vpc_peering_id: "{{ vpc_peering_result.peering_id }}"
+
+- name: accept peering connection
+  ec2_vpc_peer:
+    region: "{{ ec2_region }}"
+    peering_id: "{{ vpc_peering_id }}"
+    state: accept
+    tags: "{{ vpc_peer_tags }}"
+  register: action_peer
 
 # get NAT gateway if already exists
 - name: get NAT gateway id using subnet id
@@ -57,29 +66,35 @@
 
 - debug: var=nat_gateway_info
 
-- name: update vpc routing tables
-  ec2_vpc:
+# Update VPC route tables
+#
+- name: update VPC route table for public subnets
+  ec2_vpc_route_table:
     region: "{{ ec2_region }}"
-    cidr_block: "{{ vpc_cidr_block }}"
-    resource_tags: "{{ vpc_resource_tags }}"
-    internet_gateway: "{{ vpc_internet_gateway|string }}"
-    subnets: "{{ ec2_vpc_out.subnets }}"
-    route_tables:
-      - subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'public', 'cidr') }}"
-        routes:
-          - dest: 0.0.0.0/0
-            gw: igw
-          - dest: "{{ bastion_vpc_cidr_block }}"
-            gw: "{{ vpc_peering_id }}"
-        resource_tags: "{{ vpc_route_tables_tags }}"
-      - subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private', 'cidr') }}"
-        routes:
-          - dest: 0.0.0.0/0
-            gw: "{{ nat_gateway_info.nat_gateway_id }}"
-          - dest: "{{ bastion_vpc_cidr_block }}"
-            gw: "{{ vpc_peering_id }}"
-        resource_tags: "{{ vpc_route_tables_tags }}"
-  register: ec2_vpc_out
+    vpc_id: "{{ vpc_id }}"
+    subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'public', 'cidr') }}"
+    lookup: tag
+    tags: "{{ vpc_public_route_tables_tags }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gw: igw
+      - dest: "{{ bastion_vpc_cidr_block }}"
+        gw: "{{ vpc_peering_id }}"
+
+- name: update VPC route table for private subnets
+  ec2_vpc_route_table:
+    region: "{{ ec2_region }}"
+    vpc_id: "{{ vpc_id }}"
+    subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private', 'cidr') }}"
+    lookup: tag
+    tags: "{{ vpc_private_route_tables_tags }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gw: "{{ nat_gateway_info.nat_gateway_id }}"
+      - dest: "{{ bastion_vpc_cidr_block }}"
+        gw: "{{ vpc_peering_id }}"
+
+# Update Bastion Route tables
 
 - name: get bastion vpc route table
   ec2_vpc_route_table_facts:
@@ -91,6 +106,8 @@
 
 - name: update bastion route tables
   ec2_vpc_route_table:
+    vpc_id: "{{ bastion_vpc_id }}"
+    lookup: id
     route_table_id: "{{ item.id }}"
     region: "{{ ec2_region }}"
     routes:

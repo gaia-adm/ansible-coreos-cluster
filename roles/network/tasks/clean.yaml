@@ -4,52 +4,57 @@
   ec2_vpc_subnet_facts:
     region: "{{ ec2_region }}"
     filters:
-      vpc-id: "{{ vpc_facts.vpcs[0].id }}"
+      vpc-id: "{{ item.id }}"
       tag:tier: public
   register: vpc_subnet_facts
-  when: vpc_facts.vpcs|length > 0
+  with_items: "{{vpc_facts.vpcs | default({}) }}"
+
+- set_fact:
+    vpc_subnet_ids: "{{ item.subnets | map(attribute='id') | list }}"
+  with_items: "{{vpc_subnet_facts.results | default({}) }}"
 
 # get NAT gateway for subnet
 - name: get NAT gateway id using subnet id
-  shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ vpc_subnet_facts.subnets[0].id }}"
+  shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ item }}"
   register: nat_gateway
   changed_when: false
-  when:
-    - vpc_subnet_facts.subnets is defined
-    - vpc_subnet_facts.subnets | length > 0
+  with_items: "{{ vpc_subnet_ids | default({}) }}"
+  ignore_errors: true
 
-# var: nat_gateway_id
-- name: define nat_gateway_id
-  set_fact:
-    nat_gateway_info: "{{ nat_gateway.stdout | from_json }}"
-  when:
-    - nat_gateway is defined
-    - nat_gateway.stdout is defined
+# get nat_gateway_list
+- set_fact:
+    nat_gateway_list: []
+- set_fact:
+    nat_gateway_list: "{{nat_gateway_list}} + {{(item.stdout | from_json).NatGateways | default([])}}"
+  with_items: "{{ nat_gateway.results | default({}) }}"
 
-- name: define nat_gateway_id
+- name: get NAT Gateway ids
   set_fact:
-    nat_gateway_id: "{{ nat_gateway_info.NatGateways[0].NatGatewayId }}"
-  when:
-    - nat_gateway_info is defined
-    - nat_gateway_info.NatGateways[0] is defined
+    nat_gateway_ids: "{{ nat_gateway_list | map(attribute='NatGatewayId') | list }}"
+  when: nat_gateway_list | length > 0
 
-# var: nat_network_interface_id
-- name: define nat_network_interface_id
+# get list on network interface ids
+- name: get list of NAT network interface ids
   set_fact:
-    nat_network_interface_id: "{{ nat_gateway_info.NatGateways[0].NatGatewayAddresses[0].NetworkInterfaceId }}"
-  when:
-    - nat_gateway_info is defined
-    - nat_gateway_info.NatGateways[0] is defined
-    - nat_gateway_info.NatGateways[0].NatGatewayAddresses[0] is defined
+    nat_networks_ids: >
+      {%- set ids = [] %}
+      {%- for ads in nat_gateway_list %}
+      {%-   for ad in ads['NatGatewayAddresses'] %}
+      {%-      set _ = ids.append(ad['NetworkInterfaceId']) %}
+      {%-   endfor %}
+      {%- endfor %}
+      {{- ids -}}
+  when: nat_gateway_list | length > 0
+  ignore_errors: true
 
 # delete NAT gateway
 - name: delete NAT gateways
   ec2_vpc_nat_gateway:
     state: absent
-    nat_gateway_id: "{{ nat_gateway_id }}"
+    nat_gateway_id: "{{ item }}"
     release_eip: true
     wait: true
-  when: nat_gateway_id is defined
+  with_items: "{{ nat_gateway_ids | default({}) }}"
   ignore_errors: true
 
 # release EIP
@@ -57,7 +62,39 @@
   ec2_eip:
     state: absent
     region: "{{ ec2_region }}"
-    device_id: "{{ nat_network_interface_id }}"
+    device_id: "{{ item }}"
     release_on_disassociation: true
-  when: nat_network_interface_id is defined
+  with_items: "{{ nat_networks_ids | default({}) }}"
+  ignore_errors: true
+
+# get VPC peering id
+- name: get VPC peering id
+  shell: "aws ec2 describe-vpc-peering-connections --filters Name=accepter-vpc-info.vpc-id,Values={{ bastion_vpc_id }} Name=requester-vpc-info.vpc-id,Values={{ vpc_id }}"
+  register: describe_vpc_peering
+  when:
+    - bastion_vpc_id is defined
+    - vpc_id is defined
+  changed_when: false
+  ignore_errors: true
+
+- set_fact:
+    peering_connections: []
+- set_fact:
+    peering_connections: "{{peering_connections}} + {{(describe_vpc_peering.stdout | from_json).VpcPeeringConnections}}"
+  when:
+    - describe_vpc_peering is defined
+    - describe_vpc_peering.stdout is defined
+  ignore_errors: true
+- name: get peering ids
+  set_fact:
+    peering_ids: "{{ peering_connections | map(attribute='VpcPeeringConnectionId') | list }}"
+
+# remove VPC peering
+- name: delete VPC peering to bastion vpc
+  ec2_vpc_peer:
+    peering_id: "{{ item }}"
+    region: "{{ ec2_region }}"
+    tags: "{{ vpc_peer_tags }}"
+    state: absent
+  with_items: "{{ peering_ids | default({}) }}"
   ignore_errors: true
