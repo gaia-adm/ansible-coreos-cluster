@@ -17,14 +17,13 @@
     state: present
     name: "postgres-{{ environ }}-{{ dns }}-subnet-group"
     description: See the group name
-    subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private') }}"
+    subnets: "{{ vpc_private_subnets }}"
 
-- name: create Postgres for production environment
+- name: create Postgres for RDS
   rds:
     command: create
     db_engine: postgres
     size: "{{ volume_size.rds[environ] }}"
-    iops: "{{ iops[environ] }}"
     instance_type: "{{ instance_type.rds[environ] }}"
     instance_name: "{{ postgres_name }}"
     username: dex
@@ -38,6 +37,7 @@
     subnet: "postgres-{{ environ }}-{{ dns }}-subnet-group"
     vpc_security_groups: "{{ rds_sg.group_id }}"
     wait: true
+    wait_timeout: 600
     tags:
       Environment: "{{ environ }}"
   register: rds
@@ -69,6 +69,7 @@
 - name: wait until the endpoint is ready (availability is checked later)
   shell: "aws rds describe-db-instances --db-instance-identifier {{ postgres_name }}"
   register: dbfacts
+  changed_when: false
   until: dbfacts.stdout.find("rds.amazonaws.com") != -1
   retries: 90
   delay: 10

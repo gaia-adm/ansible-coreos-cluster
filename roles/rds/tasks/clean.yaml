@@ -1,1 +1,48 @@
 ---
+- name: get Route53 record for postgres
+  route53:
+    command: get
+    private_zone: true
+    zone: "{{ vpc_dns_zone }}"
+    record: "postgres.{{ vpc_dns_zone }}"
+    type: CNAME
+  register: rec
+  ignore_errors: true
+
+- name: clean Route53 record for postgres
+  route53:
+    command: delete
+    private_zone: true
+    zone: "{{ vpc_dns_zone }}"
+    record: "{{ rec.set.record }}"
+    ttl: "{{ rec.set.ttl }}"
+    type: "{{ rec.set.type }}"
+    value: "{{ rec.set.value }}"
+  when: rec is defined
+  ignore_errors: true
+
+- name: delete Postgres for RDS
+  rds:
+    command: delete
+    instance_name: "{{ postgres_name }}"
+    region: "{{ ec2_region }}"
+    wait: true
+    wait_timeout: 600
+  ignore_errors: true
+
+- name: delete RDS subnet group
+  rds_subnet_group:
+    region: "{{ ec2_region }}"
+    state: absent
+    name: "postgres-{{ environ }}-{{ dns }}-subnet-group"
+  ignore_errors: true
+
+- name: delete the security group for RDS
+  ec2_group:
+    name: "{{ rds_security_group.name }}"
+    description: "{{ rds_security_group.desc }}"
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ ec2_region }}"
+    state: absent
+  when: vpc_id is defined
+  ignore_errors: true

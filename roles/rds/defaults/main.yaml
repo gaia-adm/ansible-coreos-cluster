@@ -9,7 +9,7 @@ rds_security_group:
     - proto: tcp
       from_port: 5432
       to_port: 5432
-      group_name: "coreos_sg_{{ env_nick[environ] }}"
+      cidr_ip: "{{ vpc_cidr_block }}"
     - proto: tcp
       from_port: 22
       to_port: 22
@@ -18,10 +18,6 @@ rds_security_group:
       from_port: 5432
       to_port: 5432
       cidr_ip: "{{ bastion_vpc_cidr_block }}"
-
-iops:
-  production: 1000
-  develop: 1000
 
 backup_retention:
   production: 7

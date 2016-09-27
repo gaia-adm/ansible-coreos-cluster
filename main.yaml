@@ -51,12 +51,12 @@
     # create new ELB
     - role: elb
 
-    # # create S3 bucket
-    # - role: s3
-    #
-    # # create RDS
-    # - role: rds
-    #
+    # create S3 bucket
+    - role: s3
+
+    # create RDS
+    - role: rds
+
     # # find CoreOS AMI from specified channel
     # - role: find_coreos_ami
     #   tags: [ install ]

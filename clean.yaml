@@ -46,6 +46,9 @@
     # clean ELB resources
     - role: elb
 
+    # clean rds
+    - role: rds
+    
     # clean S3 resources
     - role: s3
 

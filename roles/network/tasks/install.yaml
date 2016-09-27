@@ -72,27 +72,27 @@
   ec2_vpc_route_table:
     region: "{{ ec2_region }}"
     vpc_id: "{{ vpc_id }}"
-    subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'public', 'cidr') }}"
+    subnets: "{{ vpc_public_subnets }}"
     lookup: tag
     tags: "{{ vpc_public_route_tables_tags }}"
     routes:
       - dest: 0.0.0.0/0
-        gw: igw
+        gateway_id: igw
       - dest: "{{ bastion_vpc_cidr_block }}"
-        gw: "{{ vpc_peering_id }}"
+        vpc_peering_connection_id: "{{ vpc_peering_id }}"
 
 - name: update VPC route table for private subnets
   ec2_vpc_route_table:
     region: "{{ ec2_region }}"
     vpc_id: "{{ vpc_id }}"
-    subnets: "{{ ec2_vpc_out.subnets | get_subnets('tier', 'private', 'cidr') }}"
+    subnets: "{{ vpc_private_subnets }}"
     lookup: tag
     tags: "{{ vpc_private_route_tables_tags }}"
     routes:
       - dest: 0.0.0.0/0
-        gw: "{{ nat_gateway_info.nat_gateway_id }}"
+        gateway_id: "{{ nat_gateway_info.nat_gateway_id }}"
       - dest: "{{ bastion_vpc_cidr_block }}"
-        gw: "{{ vpc_peering_id }}"
+        vpc_peering_connection_id: "{{ vpc_peering_id }}"
 
 # Update Bastion Route tables
 

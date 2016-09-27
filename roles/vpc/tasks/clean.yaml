@@ -17,5 +17,9 @@
     resource_tags: "{{ vpc_resource_tags }}"
     vpc_id: "{{ vpc_id }}"
     state: absent
+  register: result
   when: vpc_id is defined
+  until: result|success
+  retries: 10
+  delay: 30
   ignore_errors: true
