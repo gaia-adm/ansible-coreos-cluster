@@ -57,36 +57,36 @@
     # create RDS
     - role: rds
 
-    # # find CoreOS AMI from specified channel
-    # - role: find_coreos_ami
-    #   tags: [ install ]
-    #
-    # # create etcd cluster (with autoscaling group): ATTENTION - this is First CoreOS cluster to create!!!
-    # - role: cluster
-    #   cluster_type: etcd
-    #
-    # # create etcd cluster (with autoscaling group)
-    # - role: cluster
-    #   cluster_type: coreos
-    #
-    # # create elasticsearch cluster (with autoscaling group)
-    # - role: cluster
-    #   cluster_type: elasticsearch
-    #
-    # # create rabbitmq cluster (with autoscaling group)
-    # - role: cluster
-    #   cluster_type: rabbitmq
-    #
-    # # create volumes for elasticsearch cluster
-    # - role: volume
-    #   volume: "{{ es_volume }}"
-    #   number_of_volumes: "{{ cluster_size_desired_capacity.elasticsearch }}"
-    #
-    # # create volumes for rabbitmq cluster
-    # - role: volume
-    #   volume: "{{ rabbitmq_volume }}"
-    #   number_of_volumes: "{{ cluster_size_desired_capacity.rabbitmq }}"
-    #
-    # # create volumes for resul-upload cluster
-    # - role: volume
-    #   volume: "{{ result_upload_volume }}"
+    # find CoreOS AMI from specified channel
+    - role: find_coreos_ami
+      tags: [ install ]
+
+    # create etcd cluster (with autoscaling group): ATTENTION - this is First CoreOS cluster to create!!!
+    - role: cluster
+      cluster_type: etcd
+
+    # create coreos cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: coreos
+
+    # create elasticsearch cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: elasticsearch
+
+    # create rabbitmq cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: rabbitmq
+
+    # create volumes for elasticsearch cluster
+    - role: volume
+      volume: "{{ es_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.elasticsearch }}"
+
+    # create volumes for rabbitmq cluster
+    - role: volume
+      volume: "{{ rabbitmq_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.rabbitmq }}"
+
+    # create volumes for result-upload cluster
+    - role: volume
+      volume: "{{ result_upload_volume }}"

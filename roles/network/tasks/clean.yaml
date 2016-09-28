@@ -90,11 +90,25 @@
     peering_ids: "{{ peering_connections | map(attribute='VpcPeeringConnectionId') | list }}"
 
 # remove VPC peering
-- name: delete VPC peering to bastion vpc
+- name: delete VPC peering from bastion vpc
   ec2_vpc_peer:
     peering_id: "{{ item }}"
     region: "{{ ec2_region }}"
     tags: "{{ vpc_peer_tags }}"
     state: absent
   with_items: "{{ peering_ids | default({}) }}"
+  ignore_errors: true
+
+# Update Bastion Route tables
+- name: get bastion vpc route table
+  ec2_vpc_route_table_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      tag:Name: "{{ bastion_vpc_rt_name }}"
+      tag:env: "{{ environ }}"
+  register: bastion_rts
+
+- name: delete VPC route from bastion route tables
+  shell: "aws ec2 delete-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }}"
+  with_items: "{{ bastion_rts.route_tables | default({}) }}"
   ignore_errors: true

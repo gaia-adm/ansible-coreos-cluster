@@ -75,7 +75,6 @@
   delay: 10
 - set_fact:
     rds_ep: "{{ dbfacts.stdout | from_json | get_rds_endpoint() }}"
-- debug: var=rds_ep
 
 - name: create Route53 record set for postgres
   route53:

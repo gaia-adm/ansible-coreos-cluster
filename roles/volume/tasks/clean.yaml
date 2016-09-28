@@ -12,8 +12,6 @@
   register: vol_facts
   with_sequence: count="{{number_of_volumes}}"
 
-- debug: var=vol_facts
-
 - name: detach volumes
   ec2_vol:
     id: "{{ item.1.id }}"

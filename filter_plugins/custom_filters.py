@@ -1,5 +1,13 @@
 import os
 
+def skip_dicsovery_url(value, skip_str='https://discovery.etcd.io'):
+    # split into lines (keep '\n')
+    v = value.splitlines(True)
+    # remove skip_str line from list
+    v = [x for x in v if skip_str not in x]
+    # compare two lists
+    return ''.join(v)
+
 def ec2_instance_info(value, return_key):
     # collect results from aws ec2 describe-instances result
     results = []
@@ -41,5 +49,6 @@ class FilterModule(object):
             'ec2_instance_info': ec2_instance_info,
             'get_subnets': get_subnets,
             'get_subnets_full': get_subnets_full,
+            'skip_dicsovery_url': skip_dicsovery_url,
             'get_rds_endpoint': get_rds_endpoint
         }
