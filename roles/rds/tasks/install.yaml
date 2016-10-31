@@ -50,7 +50,8 @@
     wait: true
     multi_zone: true
   when: environ=="production"
-
+  register: rds_result
+  failed_when: rds_result|failed and "No modifications were requested" not in rds_result.msg
 
 # Check if DB creation has started (availability is checked later)
 - name: check Postgres existence
