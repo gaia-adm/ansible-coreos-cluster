@@ -1,0 +1,114 @@
+---
+# delete NAT gateway & Elastic IP
+- name: get vpc public subnets
+  ec2_vpc_subnet_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      vpc-id: "{{ item.id }}"
+      tag:tier: public
+  register: vpc_subnet_facts
+  with_items: "{{vpc_facts.vpcs | default({}) }}"
+
+- set_fact:
+    vpc_subnet_ids: "{{ item.subnets | map(attribute='id') | list }}"
+  with_items: "{{vpc_subnet_facts.results | default({}) }}"
+
+# get NAT gateway for subnet
+- name: get NAT gateway id using subnet id
+  shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ item }}"
+  register: nat_gateway
+  changed_when: false
+  with_items: "{{ vpc_subnet_ids | default({}) }}"
+  ignore_errors: true
+
+# get nat_gateway_list
+- set_fact:
+    nat_gateway_list: []
+- set_fact:
+    nat_gateway_list: "{{nat_gateway_list}} + {{(item.stdout | from_json).NatGateways | default([])}}"
+  with_items: "{{ nat_gateway.results | default({}) }}"
+
+- name: get NAT Gateway ids
+  set_fact:
+    nat_gateway_ids: "{{ nat_gateway_list | map(attribute='NatGatewayId') | list }}"
+  when: nat_gateway_list | length > 0
+
+# get list on network interface ids
+- name: get list of NAT network interface ids
+  set_fact:
+    nat_networks_ids: >
+      {%- set ids = [] %}
+      {%- for ads in nat_gateway_list %}
+      {%-   for ad in ads['NatGatewayAddresses'] %}
+      {%-      set _ = ids.append(ad['NetworkInterfaceId']) %}
+      {%-   endfor %}
+      {%- endfor %}
+      {{- ids -}}
+  when: nat_gateway_list | length > 0
+  ignore_errors: true
+
+# delete NAT gateway
+- name: delete NAT gateways
+  ec2_vpc_nat_gateway:
+    state: absent
+    nat_gateway_id: "{{ item }}"
+    release_eip: true
+    wait: true
+  with_items: "{{ nat_gateway_ids | default({}) }}"
+  ignore_errors: true
+
+# release EIP
+- name: disassociate Elastic IP
+  ec2_eip:
+    state: absent
+    region: "{{ ec2_region }}"
+    device_id: "{{ item }}"
+    release_on_disassociation: true
+  with_items: "{{ nat_networks_ids | default({}) }}"
+  ignore_errors: true
+
+# get VPC peering id
+- name: get VPC peering id
+  shell: "aws ec2 describe-vpc-peering-connections --filters Name=accepter-vpc-info.vpc-id,Values={{ bastion_vpc_id }} Name=requester-vpc-info.vpc-id,Values={{ vpc_id }}"
+  register: describe_vpc_peering
+  when:
+    - bastion_vpc_id is defined
+    - vpc_id is defined
+  changed_when: false
+  ignore_errors: true
+
+- set_fact:
+    peering_connections: []
+- set_fact:
+    peering_connections: "{{peering_connections}} + {{(describe_vpc_peering.stdout | from_json).VpcPeeringConnections}}"
+  when:
+    - describe_vpc_peering is defined
+    - describe_vpc_peering.stdout is defined
+  ignore_errors: true
+- name: get peering ids
+  set_fact:
+    peering_ids: "{{ peering_connections | map(attribute='VpcPeeringConnectionId') | list }}"
+
+# remove VPC peering
+- name: delete VPC peering from bastion vpc
+  ec2_vpc_peer:
+    peering_id: "{{ item }}"
+    region: "{{ ec2_region }}"
+    tags: "{{ vpc_peer_tags }}"
+    state: absent
+  with_items: "{{ peering_ids | default({}) }}"
+  ignore_errors: true
+
+# Update Bastion Route tables
+- name: get bastion vpc route table
+  ec2_vpc_route_table_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      tag:Name: "{{ bastion_vpc_rt_name }}"
+      tag:env: "{{ environ }}"
+  register: bastion_rts
+
+- name: delete VPC route from bastion route tables
+  shell: "aws ec2 delete-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }}"
+  with_items: "{{ bastion_rts.route_tables | default({}) }}"
+  ignore_errors: true

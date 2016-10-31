@@ -1,0 +1,49 @@
+# create new volume: io1 or other
+
+- name: create volume (no io1)
+  ec2_vol:
+    name: "{{ volume.name }}"
+    region: "{{ ec2_region }}"
+    volume_size: "{{ volume.size }}"
+    volume_type: "{{ volume.type }}"
+    zone: "{{ ec2_region_az1 }}"
+    state: present
+  register: _result
+  when: volume.type != "io1"
+  with_sequence: count="{{number_of_volumes}}"
+
+- set_fact:
+    _volumes: "{{_result.results}}"
+  when: _result.results is defined
+- set_fact:
+    _volumes: "{{_result}}"
+  when: _result.volume is defined
+
+- name: create volume (io1)
+  ec2_vol:
+    name: "{{ volume.name }}"
+    iops: "{{ volume.iops }}"
+    region: "{{ ec2_region }}"
+    volume_size: "{{ volume.size }}"
+    volume_type: "{{ volume.type }}"
+    zone: "{{ ec2_region_az1 }}"
+    state: present
+  register: volume_result
+  when: volume.type == "io1"
+  with_sequence: count="{{number_of_volumes}}"
+
+- set_fact:
+    _volumes: "{{_result.results}}"
+  when: _result.results is defined
+- set_fact:
+    _volumes: "{{_result}}"
+  when: _result.volume is defined
+
+# tag created volume (for search and cleanup)
+- name: "tag created volume"
+  ec2_tag:
+    region: "{{ ec2_region }}"
+    resource: "{{ item.volume_id }}"
+    state: present
+    tags: "{{ volume.tags }}"
+  with_items: "{{_volumes}}"

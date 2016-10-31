@@ -2,7 +2,5 @@
 - hosts: localhost
   connection: local
   gather_facts: False
-  vars_files:
-    - group_vars/ssh_config.yaml
   roles:
     - role: ssh_config_amazon

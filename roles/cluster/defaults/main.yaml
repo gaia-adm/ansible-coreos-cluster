@@ -1,0 +1,239 @@
+# parameters that inherited from CoreOS are stored in coreos.yaml
+
+coreos_log_key: "{{ coreos_log_key_env[environ] }}"
+
+coreos_flannel_cidr_block: 192.168.0.0/16
+
+# note: for flannel use manually create role with required pilicies
+#       https://coreos.com/flannel/docs/latest/vpc-backend.html
+#       https://coreos.com/blog/introducing-flannel-0.5.0-with-aws-and-gce/
+coreos_instance_profile: flannel-role
+
+keypair_name:
+  coreos: "coreos-keypair-{{ env_nick[environ] }}"
+  etcd: "etcd-keypair-{{ env_nick[environ] }}"
+  elasticsearch: "coreos-keypair-{{ env_nick[environ] }}"
+  rabbitmq: "coreos-keypair-{{ env_nick[environ] }}"
+
+keypair_file:
+  coreos: "coreos-key-{{ env_nick[environ] }}.pem"
+  etcd: etcd-key-{{ env_nick[environ] }}.pem
+  elasticsearch: "coreos-key-{{ env_nick[environ] }}.pem"
+  rabbitmq: "coreos-key-{{ env_nick[environ] }}.pem"
+
+cluster_size_desired_capacity:
+  coreos: 4
+  etcd: 3
+  elasticsearch: 3
+  rabbitmq: 3
+
+cluster_min_size:
+  coreos: 2
+  etcd: 3
+  elasticsearch: 3
+  rabbitmq: 2
+
+cluster_max_size:
+  coreos: 16
+  etcd: 5
+  elasticsearch: 5
+  rabbitmq: 4
+
+health_check_period:
+  coreos: 60
+  etcd: 60
+  elasticsearch: 60
+  rabbitmq: 60
+
+asg_name:
+  coreos: "coreos-asg-{{ env_nick[environ] }}"
+  etcd: "etcd-asg-{{ env_nick[environ] }}"
+  elasticsearch: "elasticsearch-asg-{{ env_nick[environ] }}"
+  rabbitmq: "rabbitmq-asg-{{ env_nick[environ] }}"
+
+lc_name:
+  coreos: "coreos-lc-{{ env_nick[environ] }}"
+  etcd: "etcd-lc-{{ env_nick[environ] }}"
+  elasticsearch: "elasticsearch-lc-{{ env_nick[environ] }}"
+  rabbitmq: "rabbitmq-lc-{{ env_nick[environ] }}"
+
+instance_profile_name:
+  coreos: "{{ coreos_instance_profile }}"
+  etcd: "{{ coreos_instance_profile }}"
+  elasticsearch: "{{ coreos_instance_profile }}"
+  rabbitmq: "{{ coreos_instance_profile }}"
+
+load_balancers:
+  coreos:
+    - "{{ coreos_elb_name }}"
+  etcd: []
+  elasticsearch: []
+  rabbitmq: []
+
+instance_tags:
+  coreos:
+    - Name: coreos
+      group: gaia
+      type: cluster_node
+      env: "{{ environ }}"
+      decription: CoreOS HA Cluster Node
+  etcd:
+    - Name: etcd
+      group: gaia
+      type: cluster_node
+      env: "{{ environ }}"
+      decription: etcd HA Cluster Node
+  elasticsearch:
+    - Name: elasticsearch
+      group: gaia
+      type: cluster_node
+      env: "{{ environ }}"
+      decription: Elasticsearch HA Cluster Node
+  rabbitmq:
+    - Name: rabbitmq
+      group: gaia
+      type: cluster_node
+      env: "{{ environ }}"
+      decription: RabbitMQ HA Cluster Node
+
+security_group_name:
+  coreos: "coreos_sg_{{ env_nick[environ] }}"
+  etcd: "etcd_sg_{{ env_nick[environ] }}"
+  elasticsearch: "elasticsearch_sg_{{ env_nick[environ] }}"
+  rabbitmq: "rabbitmq_sg_{{ env_nick[environ] }}"
+
+security_group:
+  coreos:
+    name: "{{ security_group_name.coreos }}"
+    desc: the security group for CoreOS cluster
+    rules:
+      - proto: tcp
+        from_port: 0
+        to_port: 65535
+        group_name: "{{ security_group_name.coreos }}"
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        group_name: "{{ elb_security_group.name }}"
+      - proto: tcp
+        from_port: 88
+        to_port: 88
+        group_name: "{{ elb_security_group.name }}"
+      - proto: tcp
+        from_port: 1936
+        to_port: 1936
+        group_name: "{{ elb_security_group.name }}"
+      - proto: tcp
+        from_port: 8083
+        to_port: 8083
+        group_name: "{{ elb_security_group.name }}"
+      - proto: tcp
+        from_port: 8086
+        to_port: 8086
+        group_name: "{{ elb_security_group.name }}"
+      - proto: tcp
+        from_port: 8050
+        to_port: 8050
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+  etcd:
+    name: "{{ security_group_name.etcd }}"
+    desc: the security group for etcd cluster
+    rules:
+      - proto: tcp
+        from_port: 2379
+        to_port: 2379
+        cidr_ip: "{{ vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 2380
+        to_port: 2380
+        cidr_ip: "{{ vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 4001
+        to_port: 4001
+        cidr_ip: "{{ vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 7001
+        to_port: 7001
+        cidr_ip: "{{ vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+  elasticsearch:
+    name: "{{ security_group_name.elasticsearch }}"
+    desc: the security group for Elasticsearch cluster
+    rules:
+      - proto: tcp
+        from_port: 0
+        to_port: 65535
+        group_name: "{{ security_group_name.elasticsearch }}"
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 9300
+        to_port: 9300
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 9200
+        to_port: 9200
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        group_name: "{{ security_group_name.coreos }}"
+      - proto: tcp
+        from_port: 9200
+        to_port: 9200
+        group_name: "{{ security_group_name.coreos }}"
+      - proto: tcp
+        from_port: 9300
+        to_port: 9300
+        group_name: "{{ security_group_name.coreos }}"
+  rabbitmq:
+    name: "{{ security_group_name.rabbitmq }}"
+    desc: the security group for RabbitMQ cluster
+    rules:
+      - proto: tcp
+        from_port: 0
+        to_port: 65535
+        group_name: "{{ security_group_name.rabbitmq }}"
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 5672
+        to_port: 5672
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 15672
+        to_port: 15672
+        cidr_ip: "{{ bastion_vpc_cidr_block }}"
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        group_name: "{{ security_group_name.coreos }}"
+      - proto: tcp
+        from_port: 5672
+        to_port: 5672
+        group_name: "{{ security_group_name.coreos }}"
+
+use_etcd_discovery:
+  coreos: false
+  etcd: true
+  elasticsearch: false
+  rabbitmq: false
+
+user_data_template:
+  coreos: coreos-user-data.j2
+  etcd: etcd-user-data.j2
+  elasticsearch: elasticsearch-user-data.j2
+  rabbitmq: rabbitmq-user-data.j2
+
+ansible_managed: "Ansible managed file"

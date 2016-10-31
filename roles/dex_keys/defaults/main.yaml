@@ -1,0 +1,3 @@
+---
+dex_api_secret_file: keys/{{ec2_region}}/dex_api_secret.txt
+dex_secret_file: keys/{{ec2_region}}/dex_secret.txt

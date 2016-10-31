@@ -1,0 +1,9 @@
+---
+- name: delete gaia-backup s3 bucket
+  s3:
+    bucket: "gaia.backup-{{ dns }}-{{ environ }}-{{ ec2_region }}"
+    mode: delete
+    region: "{{ ec2_region }}"
+  register: s3_result
+  failed_when: s3_result|failed and "Bucket does not exist" not in s3_result.msg
+  ignore_errors: true

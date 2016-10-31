@@ -1,0 +1,25 @@
+---
+# deassociate VPC with Bastion DNS zone
+- name: deassociate VPC with Bastion DNS zone
+  shell: "aws route53 disassociate-vpc-from-hosted-zone --vpc VPCRegion={{ ec2_region }},VPCId={{ vpc_id }} --hosted-zone-id {{ dns_zone.HostedZones[0].Id }}"
+  register: zone_vpc_deassociation
+  when:
+    - vpc_id is defined
+    - (dns_zone.HostedZones|length > 0) or (dns_zone.HostedZones[0].Name == vpc_dns_zone)
+  changed_when: zone_vpc_deassociation.rc == 0
+  ignore_errors: true
+
+# delete VPC
+- name: delete VPC
+  ec2_vpc:
+    region: "{{ ec2_region }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    resource_tags: "{{ vpc_resource_tags }}"
+    vpc_id: "{{ vpc_id }}"
+    state: absent
+  register: result
+  when: vpc_id is defined
+  until: result|success
+  retries: 10
+  delay: 30
+  ignore_errors: true

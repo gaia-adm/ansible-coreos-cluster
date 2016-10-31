@@ -1,0 +1,92 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+  - keys/credentials.yaml
+  - group_vars/elb.yaml
+  - group_vars/vpc.yaml
+
+  roles:
+    # generate etcd key pair
+    - role: keygen
+      keypair_region: "{{ ec2_region }}"
+      keypair_name: "{{ etcd_keypair_name }}"
+      keypair_file: "{{ etcd_keypair_file }}"
+      tags: [ install ]
+
+    # generate coreos key pair
+    - role: keygen
+      keypair_region: "{{ ec2_region }}"
+      keypair_name: "{{ coreos_keypair_name }}"
+      keypair_file: "{{ coreos_keypair_file }}"
+      tags: [ install ]
+
+    # generate GPG keyrings for data encryption
+    - role: gpg_keyrings
+      tags: [ install ]
+
+    # load content for gaia CA files
+    - role: https_certs
+      tags: [ install ]
+
+    # generate and DEX keys
+    - role: dex_keys
+      tags: [ install ]
+
+    # get "*.gaiahub.io" ACM certificate
+    - role: acm
+      tags: [ install ]
+
+    # collect vpc facts
+    - role: vpc_facts
+      tags: [install]
+
+    # create a new VPC
+    - role: vpc
+
+    # setup network: vpc-peering, eip, nat
+    - role: network
+
+    # create new ELB
+    - role: elb
+
+    # create S3 bucket
+    - role: s3
+
+    # create RDS
+    - role: rds
+
+    # find CoreOS AMI from specified channel
+    - role: find_coreos_ami
+      tags: [ install ]
+
+    # create etcd cluster (with autoscaling group): ATTENTION - this is First CoreOS cluster to create!!!
+    - role: cluster
+      cluster_type: etcd
+
+    # create coreos cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: coreos
+
+    # create elasticsearch cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: elasticsearch
+
+    # create rabbitmq cluster (with autoscaling group)
+    - role: cluster
+      cluster_type: rabbitmq
+
+    # create volumes for elasticsearch cluster
+    - role: volume
+      volume: "{{ es_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.elasticsearch }}"
+
+    # create volumes for rabbitmq cluster
+    - role: volume
+      volume: "{{ rabbitmq_volume }}"
+      number_of_volumes: "{{ cluster_size_desired_capacity.rabbitmq }}"
+
+    # create volumes for result-upload cluster
+    - role: volume
+      volume: "{{ result_upload_volume }}"

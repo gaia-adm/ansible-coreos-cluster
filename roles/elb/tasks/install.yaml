@@ -1,0 +1,92 @@
+---
+- name: create security group for ELB
+  ec2_group:
+    name: "{{ elb_security_group.name }}"
+    description: "{{ elb_security_group.desc }}"
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ ec2_region }}"
+    rules: "{{ elb_security_group.rules }}"
+  register: elb_sg
+
+- name: create ELB
+  ec2_elb_lb:
+    name: "{{ coreos_elb_name }}"
+    state: present
+    connection_draining_timeout: 60
+    cross_az_load_balancing: true
+    region: "{{ ec2_region }}"
+    security_group_ids: "{{ elb_sg.group_id }}"
+    subnets: "{{ vpc_public_subnets }}"
+    tags: "{{ elb_tags }}"
+    wait: true
+    listeners:
+      - protocol: http
+        load_balancer_port: 80
+        instance_port: 80
+      - protocol: http
+        load_balancer_port: 88
+        instance_port: 88
+      - protocol: https
+        load_balancer_port: 443
+        instance_protocol: http
+        instance_port: 80
+        ssl_certificate_id: "{{ certificate_arn }}"
+      - protocol: https
+        load_balancer_port: 444
+        instance_protocol: http
+        instance_port: 88
+        ssl_certificate_id: "{{ certificate_arn }}"
+      - protocol: http
+        load_balancer_port: 1936
+        instance_port: 1936
+      - protocol: http
+        load_balancer_port: 8083
+        instance_port: 8083
+      - protocol: http
+        load_balancer_port: 8086
+        instance_port: 8086
+    health_check:
+      ping_protocol: http
+      ping_port: 88
+      ping_path: "/mgs/"
+      response_timeout: 5
+      interval: 10
+      unhealthy_threshold: 4
+      healthy_threshold: 5
+  register: elb_result
+
+- name: get ELB facts
+  ec2_elb_facts:
+    region: "{{ ec2_region }}"
+    names: "{{ coreos_elb_name }}"
+  register: elb_facts
+
+- name: create route53 subdomain for environment
+  route53:
+    command: create
+    zone:  gaiahub.io
+    record: "{{ dns }}.gaiahub.io"
+    type: A
+    alias: True
+    overwrite: True
+    alias_hosted_zone_id: "{{ elb_facts.elbs[0].canonical_hosted_zone_name_id }}"
+    value: "dualstack.{{ elb_facts.elbs[0].canonical_hosted_zone_name }}"
+  when:
+    - elb_facts.elbs | length > 0
+    - elb_facts.elbs[0].canonical_hosted_zone_name_id != elb_result.elb.hosted_zone_id
+    - elb_facts.elbs[0].canonical_hosted_zone_name != elb_result.elb.hosted_zone_name
+
+- name: create route53 4th level domain for webhooks
+  route53:
+    command: create
+    zone:  gaiahub.io
+    record: "webhook.{{ dns }}.gaiahub.io"
+    type: A
+    alias: True
+    overwrite: True
+    alias_hosted_zone_id: "{{ elb_facts.elbs[0].canonical_hosted_zone_name_id }}"
+    value: "dualstack.{{ elb_facts.elbs[0].canonical_hosted_zone_name }}"
+  when:
+    - elb_facts.elbs | length > 0
+    - elb_facts.elbs[0].canonical_hosted_zone_name_id != elb_result.elb.hosted_zone_id
+    - elb_facts.elbs[0].canonical_hosted_zone_name != elb_result.elb.hosted_zone_name

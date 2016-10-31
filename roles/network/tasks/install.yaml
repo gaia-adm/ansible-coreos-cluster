@@ -1,0 +1,116 @@
+---
+# Create VPC peering: Bastion <-> Gaia
+#
+- name: create VPC peering to bastion vpc
+  ec2_vpc_peer:
+    vpc_id: "{{ vpc_id }}"
+    peer_vpc_id: "{{ bastion_vpc_id }}"
+    region: "{{ ec2_region }}"
+    state: present
+    tags: "{{ vpc_peer_tags }}"
+  register: vpc_peering_result
+
+- name: get vpc peering id
+  set_fact:
+    vpc_peering_id: "{{ vpc_peering_result.peering_id }}"
+
+- name: accept peering connection
+  ec2_vpc_peer:
+    region: "{{ ec2_region }}"
+    peering_id: "{{ vpc_peering_id }}"
+    state: accept
+    tags: "{{ vpc_peer_tags }}"
+  register: action_peer
+
+# get NAT gateway if already exists
+- name: get NAT gateway id using subnet id
+  shell: "aws ec2 describe-nat-gateways --filter Name=subnet-id,Values={{ vpc_public_subnets[0] }}"
+  register: nat_gateway
+  changed_when: false
+- set_fact:
+    nat_gateway_info: "{{ nat_gateway.stdout | from_json }}"
+- set_fact:
+    nat_network_interface_id: "{{ nat_gateway_info.NatGateways[0].NatGatewayAddresses[0].NetworkInterfaceId }}"
+  when:
+    - nat_gateway_info.NatGateways[0] is defined
+    - nat_gateway_info.NatGateways[0].NatGatewayAddresses[0] is defined
+- set_fact:
+    nat_network_interface_id: null
+  when: nat_network_interface_id is undefined
+
+- debug: var=nat_network_interface_id
+
+# Create new Elastic IP
+- name: Allocate a new elastic IP without associating it to anything
+  ec2_eip:
+    state: present
+    device_id: "{{ nat_network_interface_id }}"
+    region: "{{ ec2_region }}"
+    in_vpc: true
+    release_on_disassociation: true
+    reuse_existing_ip_allowed: true
+  register: elastic_ip_info
+
+- debug: var=elastic_ip_info
+
+# Create new NAT service
+- name: Create new NAT Gateway service using an allocation-id
+  ec2_vpc_nat_gateway:
+    state: present
+    if_exist_do_not_create: true
+    subnet_id: "{{ vpc_public_subnets[0] }}"
+    allocation_id: "{{ elastic_ip_info.allocation_id }}"
+    region: "{{ ec2_region }}"
+    wait: true
+  register: nat_gateway_info
+
+- debug: var=nat_gateway_info
+
+# Update VPC route tables
+#
+- name: update VPC route table for public subnets
+  ec2_vpc_route_table:
+    region: "{{ ec2_region }}"
+    vpc_id: "{{ vpc_id }}"
+    subnets: "{{ vpc_public_subnets }}"
+    lookup: tag
+    tags: "{{ vpc_public_route_tables_tags }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: igw
+      - dest: "{{ bastion_vpc_cidr_block }}"
+        vpc_peering_connection_id: "{{ vpc_peering_id }}"
+
+- name: update VPC route table for private subnets
+  ec2_vpc_route_table:
+    region: "{{ ec2_region }}"
+    vpc_id: "{{ vpc_id }}"
+    subnets: "{{ vpc_private_subnets }}"
+    lookup: tag
+    tags: "{{ vpc_private_route_tables_tags }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ nat_gateway_info.nat_gateway_id }}"
+      - dest: "{{ bastion_vpc_cidr_block }}"
+        vpc_peering_connection_id: "{{ vpc_peering_id }}"
+
+# Update Bastion Route tables
+
+- name: get bastion vpc route table
+  ec2_vpc_route_table_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      tag:Name: "{{ bastion_vpc_rt_name }}"
+      tag:env: "{{ environ }}"
+  register: bastion_rts
+
+- name: update bastion route tables
+  ec2_vpc_route_table:
+    vpc_id: "{{ bastion_vpc_id }}"
+    lookup: id
+    route_table_id: "{{ item.id }}"
+    region: "{{ ec2_region }}"
+    routes:
+      - dest: "{{ vpc_cidr_block }}"
+        vpc_peering_connection_id: "{{ vpc_peering_id }}"
+  with_items: "{{ bastion_rts.route_tables }}"

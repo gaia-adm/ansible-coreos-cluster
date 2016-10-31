@@ -2,8 +2,11 @@
 .out
 .python
 *.pyc
+.cache
+__pycache__
 .ssh_config
-keys
-keys/
+.keys_region
 .idea
 .tunnel_*.sh
+keys
+try.yaml

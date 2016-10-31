@@ -4,7 +4,7 @@ Subkey-Type: default
 Subkey-Length: 1024
 Name-Real: gaia-gpg
 Expire-Date: 0
-%pubring keys/gaia-pubring.gpg
-%secring keys/gaia-secring.gpg
+%pubring .keys_region/gaia-pubring.gpg
+%secring .keys_region/gaia-secring.gpg
 %commit
 %echo done

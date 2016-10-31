@@ -1,0 +1,19 @@
+---
+ssh_config_file: "ssh_config_{{ env_nick[environ] }}"
+
+bastion_instance_tags: { "Name": "bastion", "group": "gaia", "env": "{{ environ }}", "type": "bastion-vm" }
+bastion_user: "ubuntu"
+bastion_keypair_file: "bastion-key-{{ env_nick[environ] }}.pem"
+
+docker_registry_instance_tags:  { "Name": "docker-registry", "group": "gaia", "env": "{{ environ }}", "type": "docker-registry-vm" }
+docker_registry_keypair_file: "docker-registry-key-{{ env_nick[environ] }}.pem"
+
+coreos_instance_tags:  { "Name": "coreos", "group": "gaia", "env": "{{ environ }}", "type": "cluster_node" }
+coreos_keypair_file: "coreos-key-{{ env_nick[environ] }}.pem"
+
+etcd_instance_tags:  { "Name": "etcd", "group": "gaia", "env": "{{ environ }}", "type": "cluster_node" }
+etcd_keypair_file: "etcd-key-{{ env_nick[environ] }}.pem"
+
+rabbitmq_instance_tags:  { "Name": "rabbitmq", "group": "gaia", "env": "{{ environ }}", "type": "cluster_node" }
+
+elasticsearch_instance_tags:  { "Name": "elasticsearch", "group": "gaia", "env": "{{ environ }}", "type": "cluster_node" }

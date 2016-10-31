@@ -1,0 +1,25 @@
+---
+  # search for acm certificate
+  - name: list acm certificates
+    acm_facts:
+      region: "{{ ec2_region }}"
+      certificate_statuses: [ ISSUED ]
+    register: acm_result
+
+  # Fail if ACM certificate exists in selected region
+  - name: check ACM certificate existence
+    fail:
+      msg: "Expected to find ACM certificate in '{{ ec2_region }}' region. Please, issue new ACM certificate."
+    when: acm_result.certificates | length == 0
+
+  # get certificate for "*.gaiahub.io" domain
+  - name: select first certificate for the "*.gaiahub.io" domain
+    set_fact:
+      certificate_arn: "{{ acm_result.certificates | selectattr('domain_name','equalto', '*.gaiahub.io') | map(attribute='arn') | list | first }}"
+    when: acm_result.certificates | length > 0
+
+  # Fail if there is no ACM certificate assigned to "*.gaiahub.io"
+  - name: check "*.gaiahub.io" ACM certificate existence
+    fail:
+      msg: "Expected to find ACM certificate in '{{ ec2_region }}' region. Please, issue new ACM certificate."
+    when: certificate_arn is not defined

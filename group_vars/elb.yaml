@@ -1,0 +1,2 @@
+---
+coreos_elb_name: "coreos-elb-{{ env_nick[environ] }}"

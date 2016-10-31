@@ -1,16 +1,37 @@
-# generate CA https certificate for skydns.local
-- name: Create keys/region directory
-  file: path=keys/ state=directory mode=0700
+---
 
-- name: create skydns.local CA key
-  shell: "openssl genrsa -out keys/skydns_local.key 2048"
-  args:
-    creates: "keys/skydns_local.key"
-- name: create skydns.local CA csr
-  shell: "openssl req -sha256 -new -subj {{ skydns_ca_subj }} -key keys/skydns_local.key -out keys/skydns_local.csr"
-  args:
-    creates: "keys/skydns_local.csr"
-- name: create skydns.local CA crt
-  shell: "openssl x509 -days 3650 -signkey keys/skydns_local.key -in keys/skydns_local.csr -req -out keys/skydns_local.crt"
-  args:
-    creates: "keys/skydns_local.crt"
+# search for gaia CA crt
+- name: search for gaia CA crt file
+  set_fact:
+    gaia_ca_crt_file: "keys/{{ ec2_region }}/{{ gaia_ca_file }}.crt"
+- stat:
+    path: "{{ gaia_ca_crt_file }}"
+  register: st_out
+- fail:
+    msg: "Missing {{ gaia_ca_crt_file }} file. Please copy this file from ansible-bastion or make the keys directory a symlink"
+  when: not st_out.stat.exists
+
+- name: load gaia CA crt file content
+  shell: "openssl enc -base64 -A -in {{ gaia_ca_crt_file }}"
+  register: gaia_ca_crt_content_out
+  changed_when: false
+- set_fact:
+    gaia_ca_crt_content: "{{ gaia_ca_crt_content_out.stdout }}"
+
+# gaia CA private key content
+- name: search for gaia CA key file
+  set_fact:
+    gaia_ca_key_file: "keys/{{ ec2_region }}/{{ gaia_ca_file }}.key"
+- stat:
+    path: "{{ gaia_ca_key_file }}"
+  register: st_out
+- fail:
+    msg: "Missing {{ gaia_ca_key_file }} file. Please copy this file from ansible-bastion or make the keys directory a symlink"
+  when: not st_out.stat.exists
+
+- name: load gaia CA key file content
+  shell: "openssl enc -base64 -A -in {{ gaia_ca_key_file }}"
+  register: gaia_ca_key_content_out
+  changed_when: false
+- set_fact:
+    gaia_ca_key_content: "{{ gaia_ca_key_content_out.stdout }}"

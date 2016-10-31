@@ -1,0 +1,32 @@
+---
+- name: find volumes
+  ec2_vol_facts:
+    region: "{{ ec2_region }}"
+    filters:
+      availability-zone: "{{ ec2_region_az1 }}"
+      volume-type: "{{ volume.type }}"
+      tag:Name: "{{ volume.name }}"
+      tag:group: "{{ volume.tags.group }}"
+      tag:env: "{{ volume.tags.env }}"
+      tag:purpose: "{{ volume.tags.purpose }}"
+  register: vol_facts
+  with_sequence: count="{{number_of_volumes}}"
+
+- name: detach volumes
+  ec2_vol:
+    id: "{{ item.1.id }}"
+    instance: None
+  with_subelements:
+    - "{{vol_facts.results}}"
+    - volumes
+  ignore_errors: true
+
+- name: delete volumes
+  ec2_vol:
+    id: "{{ item.1.id }}"
+    region: "{{ ec2_region }}"
+    state: absent
+  with_subelements:
+    - "{{vol_facts.results}}"
+    - volumes
+  ignore_errors: true
