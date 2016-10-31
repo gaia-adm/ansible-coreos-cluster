@@ -2,6 +2,8 @@
 .out
 .python
 *.pyc
+.cache
+__pycache__
 .ssh_config
 .keys_region
 .idea
