@@ -224,12 +224,6 @@ security_group:
         to_port: 5672
         group_name: "{{ security_group_name.coreos }}"
 
-use_etcd_discovery:
-  coreos: false
-  etcd: true
-  elasticsearch: false
-  rabbitmq: false
-
 user_data_template:
   coreos: coreos-user-data.j2
   etcd: etcd-user-data.j2

@@ -1,5 +1,6 @@
 ---
 - hosts: localhost
+  strategy: debug
   connection: local
   gather_facts: false
   vars_files:
@@ -64,6 +65,9 @@
     # create etcd cluster (with autoscaling group): ATTENTION - this is First CoreOS cluster to create!!!
     - role: cluster
       cluster_type: etcd
+
+    # register etcd nodes in DNS
+    - role: register_etcd
 
     # create coreos cluster (with autoscaling group)
     - role: cluster

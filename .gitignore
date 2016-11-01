@@ -8,5 +8,6 @@ __pycache__
 .keys_region
 .idea
 .tunnel_*.sh
+*.retry
 keys
 try.yaml

@@ -14,12 +14,6 @@
     sg_type_id: "{{ sg_type_id|default({}) | combine( {cluster_type: _sg.group_id} ) }}"
 - debug: var=sg_type_id
 
-- set_fact:
-    etcd_discovery_url: "{{ lookup('pipe', 'curl -s https://discovery.etcd.io/new?size='+item) }}"
-  with_items:
-    - "{{cluster_size_desired_capacity[cluster_type]|string}}"
-  when: use_etcd_discovery[cluster_type]
-
 # generate user-data from template
 - name: load user-data content
   set_fact:
@@ -151,8 +145,8 @@
   ec2_remote_facts:
     region: "{{ ec2_region }}"
     filters:
-      instance-state-name: running
-      source-dest-check: true
+      instance-state-name: "running"
+      source-dest-check: "true"
       tag:aws:autoscaling:groupName: "{{ asg_name[cluster_type] }}"
   register: _asg_instances
 
