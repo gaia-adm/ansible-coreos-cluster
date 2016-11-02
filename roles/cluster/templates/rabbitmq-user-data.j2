@@ -56,8 +56,9 @@ write-files:
       # see full list of journald settings in /root/journald.conf.BACKUP
 coreos:
   etcd2:
-    # use same discovery url as for etcd cluster; configure etcd to the "proxy" mode
-    discovery: "{{ etcd_discovery_url }}"
+    # use same discovery DNS as for etcd cluster; configure etcd to the "proxy" mode
+    # DNS domain name where the discovery SRV records can be found
+    discovery-srv: "{{vpc_dns_zone}}"
     # listen on both the official ports and the legacy ports for "localhost" only
     # legacy ports can be omitted if your application doesn't depend on them
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001

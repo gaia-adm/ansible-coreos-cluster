@@ -13,8 +13,22 @@
     resource_tags: "{{ vpc_resource_tags }}"
     internet_gateway: "{{ vpc_internet_gateway|string }}"
     subnets: "{{ vpc_subnets }}"
+    dns_hostnames: true
+    dns_support: true
     wait: true
   register: ec2_vpc_out
+
+# Create DHCP options set - register Route53 as private DNS server for VPC
+- name: create DHCP options set
+  ec2_vpc_dhcp_options:
+    region: "{{ ec2_region }}"
+    tags: "{{ dhcp_opts_tags }}"
+    domain_name: "{{ vpc_dns_zone }}"
+    dns_servers: AmazonProvidedDNS
+    vpc_id: "{{ ec2_vpc_out.vpc_id }}"
+    state: present
+  register: dhcp_opts
+
 
 # associate new VPC with Bastion DNS zone
 - name: associate Gaia VPC with Bastion DNS zone

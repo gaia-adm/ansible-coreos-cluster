@@ -3,8 +3,12 @@
 ---
 coreos:
   etcd2:
-    # generate a new token for each unique cluster from
-    discovery: "{{ etcd_discovery_url }}"
+    # DNS domain name where the discovery SRV records can be found
+    discovery-srv: "{{vpc_dns_zone}}"
+    # Initial cluster token for the etcd cluster during bootstrap
+    initial-cluster-token: "etcd-cluster-{{env_nick[environ]}}"
+    # Initial cluster state ("new")
+    initial-cluster-state: "new"
     # multi-region and multi-cloud deployments need to use $public_ipv4
     advertise-client-urls: http://$private_ipv4:2379
     initial-advertise-peer-urls: http://$private_ipv4:2380
