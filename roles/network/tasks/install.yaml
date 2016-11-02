@@ -104,13 +104,10 @@
       tag:env: "{{ environ }}"
   register: bastion_rts
 
-- name: update bastion route tables
-  ec2_vpc_route_table:
-    vpc_id: "{{ bastion_vpc_id }}"
-    lookup: id
-    route_table_id: "{{ item.id }}"
-    region: "{{ ec2_region }}"
-    routes:
-      - dest: "{{ vpc_cidr_block }}"
-        vpc_peering_connection_id: "{{ vpc_peering_id }}"
+# update with aws since ec2_vpc_route_table destroys 0.0.0.0/0 record in route table
+- name: update bastion route table (with aws command)
+  shell: "aws ec2 create-route --route-table-id {{ item.id }} --destination-cidr-block {{ vpc_cidr_block }} --vpc-peering-connection-id {{ vpc_peering_id }}"
   with_items: "{{ bastion_rts.route_tables }}"
+  register: _result
+  failed_when: _result.rc != 0 and "already exists" not in _result.stderr
+  changed_when: _result.rc == 0

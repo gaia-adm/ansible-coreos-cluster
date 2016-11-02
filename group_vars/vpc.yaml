@@ -9,6 +9,7 @@ vpc_peer_tags: { "Name": "bastion-gaia", "env": "{{ environ }}", "group": "gaia"
 vpc_cidr_block: "{{ cidr_block[environ] }}"
 vpc_internet_gateway: "yes"
 
+dhcp_opts_tags: { "Name": "gaia-dhcp-{{ env_nick[environ] }}", "env": "{{ environ }}", "group": "gaia" }
 vpc_resource_tags: { "Name": "gaia-vpc", "env": "{{ environ }}", "group": "gaia" }
 
 vpc_public_route_tables_tags: { "Name": "gaia-public-rt", "env": "{{ environ }}", "group": "gaia", "type": "public" }

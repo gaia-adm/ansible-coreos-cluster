@@ -36,7 +36,7 @@
   when: _lcs.results|length > 0
 
 - name: check user-data
-  debug: msg="{{(_lcs.results[0].user_data | b64decode | skip_dicsovery_url) == (user_data | skip_dicsovery_url)}}"
+  debug: msg="{{(_lcs.results[0].user_data | b64decode) == user_data}}"
   when: _lcs.results|length > 0
 
 - name: check instance type
@@ -61,7 +61,7 @@
     # and same image id
     - _lcs.results[0].image_id == coreos_ami.ami_id
     # and same user_data
-    - (_lcs.results[0].user_data | b64decode | skip_dicsovery_url) == (user_data | skip_dicsovery_url)
+    - (_lcs.results[0].user_data | b64decode) == user_data
     # and same instance type
     - _lcs.results[0].instance_type == instance_type[cluster_type][environ]
     # and same key name

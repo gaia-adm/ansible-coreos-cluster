@@ -20,22 +20,51 @@
     - etcd_asg_facts is defined
     - etcd_asg_facts.instances is defined
 
-- name: combile IP addresses into single list
+- name: combine IP addresses into single list
   set_fact:
-    etcd_ips: "{{ etcd_ip_out.results | map(attribute='ansible_facts.etcd_ip') | list | join(',') }}"
+    etcd_ips: "{{ etcd_ip_out.results | map(attribute='ansible_facts.etcd_ip') | list }}"
   when:
     - etcd_ip_out is defined
     - etcd_ip_out.results is defined
 
-- name: setup etcd DNS records
+- name: setup etcd DNS etcd A records
+  route53:
+    command: create
+    private_zone: True
+    zone: "{{ vpc_dns_zone }}"
+    record: "etcd-{{ item.0 }}.{{ vpc_dns_zone }}"
+    type: "A"
+    value: "{{ item.1 }}"
+    ttl: 600
+    overwrite: true
+  with_indexed_items: "{{ etcd_ips }}"
+  when:
+    - etcd_ips is defined
+    - etcd_ips|length > 0
+
+- name: setup etcd DNS etcd SRV *server* records
   route53:
     command: create
     private_zone: True
     zone: "{{ vpc_dns_zone }}"
     record: "_etcd-server._tcp.{{ vpc_dns_zone }}"
-    type: A
-    value: "{{ etcd_ips }}"
-    ttl: 7200
+    type: "SRV"
+    value: "{{ etcd_ips | etcd_srv_records('2380', 'etcd', vpc_dns_zone) | join(',')}}"
+    ttl: 600
+    overwrite: true
+  when:
+    - etcd_ips is defined
+    - etcd_ips|length > 0
+
+- name: setup etcd DNS etcd SRV *client* records
+  route53:
+    command: create
+    private_zone: True
+    zone: "{{ vpc_dns_zone }}"
+    record: "_etcd-client._tcp.{{ vpc_dns_zone }}"
+    type: "SRV"
+    value: "{{ etcd_ips | etcd_srv_records('2379', 'etcd', vpc_dns_zone) | join(',') }}"
+    ttl: 600
     overwrite: true
   when:
     - etcd_ips is defined
