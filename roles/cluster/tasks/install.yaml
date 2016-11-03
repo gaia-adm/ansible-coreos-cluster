@@ -85,6 +85,10 @@
         volume_type: gp2
         volume_size: "{{ volume_size[cluster_type][environ] }}"
         delete_on_termination: true
+      - device_name: /dev/xvdb
+        volume_type: gp2
+        volume_size: 8
+        delete_on_termination: true
   register: _lc
   when: _update_lc
 
