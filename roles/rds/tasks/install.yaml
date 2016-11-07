@@ -26,9 +26,9 @@
     size: "{{ volume_size.rds[environ] }}"
     instance_type: "{{ instance_type.rds[environ] }}"
     instance_name: "{{ postgres_name }}"
-    username: dex
-    password: dex_pass
-    db_name: dex_db
+    username: hpe_account_management
+    password: hpe_account_management
+    db_name: {{ ACM_DB_PASSWORD }}
     backup_retention: "{{ backup_retention[environ] }}"
     engine_version: "{{ postgres_version }}"
     upgrade: false
