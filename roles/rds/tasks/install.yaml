@@ -28,7 +28,7 @@
     instance_name: "{{ postgres_name }}"
     username: hpe_account_management
     password: hpe_account_management
-    db_name: {{ ACM_DB_PASSWORD }}
+    db_name: "{{ ACM_DB_PASSWORD }}"
     backup_retention: "{{ backup_retention[environ] }}"
     engine_version: "{{ postgres_version }}"
     upgrade: false
