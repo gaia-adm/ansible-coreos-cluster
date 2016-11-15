@@ -24,6 +24,6 @@ backup_retention:
   develop: 1
 
 postgres_name: "postgres-{{ environ }}-{{ dns }}"
-postgres_version: 9.4.5
+postgres_version: 9.5.4
 
 rds_posgres_ep_ttl: 300
