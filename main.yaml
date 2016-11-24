@@ -31,10 +31,6 @@
     - role: https_certs
       tags: [ install ]
 
-    # generate and DEX keys
-    - role: dex_keys
-      tags: [ install ]
-
     # get "*.gaiahub.io" ACM certificate
     - role: acm
       tags: [ install ]
