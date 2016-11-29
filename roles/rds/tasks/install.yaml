@@ -86,6 +86,7 @@
     type: CNAME
     value: "{{ rds_ep }}"
     ttl: "{{ rds_posgres_ep_ttl }}"
+    overwrite: yes
 - set_fact:
     POSTGRES_EP_OUT: "postgres.{{ vpc_dns_zone }}"
 

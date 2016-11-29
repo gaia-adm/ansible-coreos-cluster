@@ -23,7 +23,7 @@ backup_retention:
   production: 7
   develop: 1
 
-postgres_name: "postgres-{{ environ }}-{{ dns }}"
+postgres_name: "postgres-{{ environ }}-{{ dns }}-{{ postgres_version | replace('.','') }}"
 postgres_version: 9.5.4
 
 rds_posgres_ep_ttl: 300
